@@ -1,0 +1,997 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		C17778B52E58E81300D57CAD /* LabelKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C17778A92E58E81300D57CAD /* LabelKit.framework */; };
+		C17778C52E58E91700D57CAD /* Stencil in Frameworks */ = {isa = PBXBuildFile; productRef = C17778C42E58E91700D57CAD /* Stencil */; };
+		C17779092E58EACA00D57CAD /* LabelKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C17778A92E58E81300D57CAD /* LabelKit.framework */; };
+		C177790A2E58EACA00D57CAD /* LabelKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C17778A92E58E81300D57CAD /* LabelKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		C177790E2E58EAE000D57CAD /* LabelKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C17778A92E58E81300D57CAD /* LabelKit.framework */; };
+		C177790F2E58EAE000D57CAD /* LabelKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C17778A92E58E81300D57CAD /* LabelKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C17778B62E58E81300D57CAD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C17778A02E58E81300D57CAD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C17778A82E58E81300D57CAD;
+			remoteInfo = LabelKit;
+		};
+		C17778EE2E58EAA800D57CAD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C17778A02E58E81300D57CAD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C17778DF2E58EAA700D57CAD;
+			remoteInfo = LabelGUI;
+		};
+		C17778F82E58EAA800D57CAD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C17778A02E58E81300D57CAD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C17778DF2E58EAA700D57CAD;
+			remoteInfo = LabelGUI;
+		};
+		C177790B2E58EACA00D57CAD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C17778A02E58E81300D57CAD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C17778A82E58E81300D57CAD;
+			remoteInfo = LabelKit;
+		};
+		C17779102E58EAE000D57CAD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C17778A02E58E81300D57CAD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C17778A82E58E81300D57CAD;
+			remoteInfo = LabelKit;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C17778D32E58EA2F00D57CAD /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		C177790D2E58EACA00D57CAD /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				C177790A2E58EACA00D57CAD /* LabelKit.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C17779122E58EAE000D57CAD /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				C177790F2E58EAE000D57CAD /* LabelKit.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		C17778A92E58E81300D57CAD /* LabelKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LabelKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		C17778B42E58E81300D57CAD /* LabelKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LabelKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C17778D52E58EA2F00D57CAD /* label */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = label; sourceTree = BUILT_PRODUCTS_DIR; };
+		C17778E02E58EAA700D57CAD /* LabelGUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LabelGUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C17778ED2E58EAA800D57CAD /* LabelGUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LabelGUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C17778F72E58EAA800D57CAD /* label.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = label.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		C17778AB2E58E81300D57CAD /* LabelKit */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = LabelKit;
+			sourceTree = "<group>";
+		};
+		C17778B82E58E81300D57CAD /* LabelKitTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = LabelKitTests;
+			sourceTree = "<group>";
+		};
+		C17778D62E58EA2F00D57CAD /* LabelCLI */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = LabelCLI;
+			sourceTree = "<group>";
+		};
+		C17778E12E58EAA700D57CAD /* LabelGUI */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = LabelGUI;
+			sourceTree = "<group>";
+		};
+		C17778F02E58EAA800D57CAD /* LabelGUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = LabelGUITests;
+			sourceTree = "<group>";
+		};
+		C17778FA2E58EAA800D57CAD /* LabelGUIUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = LabelGUIUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C17778A62E58E81300D57CAD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C17778C52E58E91700D57CAD /* Stencil in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C17778B12E58E81300D57CAD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C17778B52E58E81300D57CAD /* LabelKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C17778D22E58EA2F00D57CAD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C17779092E58EACA00D57CAD /* LabelKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C17778DD2E58EAA700D57CAD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C177790E2E58EAE000D57CAD /* LabelKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C17778EA2E58EAA800D57CAD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C17778F42E58EAA800D57CAD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		C177789F2E58E81300D57CAD = {
+			isa = PBXGroup;
+			children = (
+				C17778AB2E58E81300D57CAD /* LabelKit */,
+				C17778B82E58E81300D57CAD /* LabelKitTests */,
+				C17778D62E58EA2F00D57CAD /* LabelCLI */,
+				C17778E12E58EAA700D57CAD /* LabelGUI */,
+				C17778F02E58EAA800D57CAD /* LabelGUITests */,
+				C17778FA2E58EAA800D57CAD /* LabelGUIUITests */,
+				C17779082E58EACA00D57CAD /* Frameworks */,
+				C17778AA2E58E81300D57CAD /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C17778AA2E58E81300D57CAD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C17778A92E58E81300D57CAD /* LabelKit.framework */,
+				C17778B42E58E81300D57CAD /* LabelKitTests.xctest */,
+				C17778D52E58EA2F00D57CAD /* label */,
+				C17778E02E58EAA700D57CAD /* LabelGUI.app */,
+				C17778ED2E58EAA800D57CAD /* LabelGUITests.xctest */,
+				C17778F72E58EAA800D57CAD /* label.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C17779082E58EACA00D57CAD /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		C17778A42E58E81300D57CAD /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		C17778A82E58E81300D57CAD /* LabelKit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C17778BD2E58E81300D57CAD /* Build configuration list for PBXNativeTarget "LabelKit" */;
+			buildPhases = (
+				C17778A42E58E81300D57CAD /* Headers */,
+				C17778A52E58E81300D57CAD /* Sources */,
+				C17778A62E58E81300D57CAD /* Frameworks */,
+				C17778A72E58E81300D57CAD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C17778AB2E58E81300D57CAD /* LabelKit */,
+			);
+			name = LabelKit;
+			packageProductDependencies = (
+				C17778C42E58E91700D57CAD /* Stencil */,
+			);
+			productName = LabelKit;
+			productReference = C17778A92E58E81300D57CAD /* LabelKit.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		C17778B32E58E81300D57CAD /* LabelKitTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C17778C02E58E81300D57CAD /* Build configuration list for PBXNativeTarget "LabelKitTests" */;
+			buildPhases = (
+				C17778B02E58E81300D57CAD /* Sources */,
+				C17778B12E58E81300D57CAD /* Frameworks */,
+				C17778B22E58E81300D57CAD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C17778B72E58E81300D57CAD /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C17778B82E58E81300D57CAD /* LabelKitTests */,
+			);
+			name = LabelKitTests;
+			packageProductDependencies = (
+			);
+			productName = LabelKitTests;
+			productReference = C17778B42E58E81300D57CAD /* LabelKitTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		C17778D42E58EA2F00D57CAD /* LabelCLI */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C17778D92E58EA2F00D57CAD /* Build configuration list for PBXNativeTarget "LabelCLI" */;
+			buildPhases = (
+				C17778D12E58EA2F00D57CAD /* Sources */,
+				C17778D22E58EA2F00D57CAD /* Frameworks */,
+				C17778D32E58EA2F00D57CAD /* CopyFiles */,
+				C177790D2E58EACA00D57CAD /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C177790C2E58EACA00D57CAD /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C17778D62E58EA2F00D57CAD /* LabelCLI */,
+			);
+			name = LabelCLI;
+			packageProductDependencies = (
+			);
+			productName = LabelCLI;
+			productReference = C17778D52E58EA2F00D57CAD /* label */;
+			productType = "com.apple.product-type.tool";
+		};
+		C17778DF2E58EAA700D57CAD /* LabelGUI */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C17778FF2E58EAA800D57CAD /* Build configuration list for PBXNativeTarget "LabelGUI" */;
+			buildPhases = (
+				C17778DC2E58EAA700D57CAD /* Sources */,
+				C17778DD2E58EAA700D57CAD /* Frameworks */,
+				C17778DE2E58EAA700D57CAD /* Resources */,
+				C17779122E58EAE000D57CAD /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C17779112E58EAE000D57CAD /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C17778E12E58EAA700D57CAD /* LabelGUI */,
+			);
+			name = LabelGUI;
+			packageProductDependencies = (
+			);
+			productName = LabelGUI;
+			productReference = C17778E02E58EAA700D57CAD /* LabelGUI.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C17778EC2E58EAA800D57CAD /* LabelGUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C17779022E58EAA800D57CAD /* Build configuration list for PBXNativeTarget "LabelGUITests" */;
+			buildPhases = (
+				C17778E92E58EAA800D57CAD /* Sources */,
+				C17778EA2E58EAA800D57CAD /* Frameworks */,
+				C17778EB2E58EAA800D57CAD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C17778EF2E58EAA800D57CAD /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C17778F02E58EAA800D57CAD /* LabelGUITests */,
+			);
+			name = LabelGUITests;
+			packageProductDependencies = (
+			);
+			productName = LabelGUITests;
+			productReference = C17778ED2E58EAA800D57CAD /* LabelGUITests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		C17778F62E58EAA800D57CAD /* LabelGUIUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C17779052E58EAA800D57CAD /* Build configuration list for PBXNativeTarget "LabelGUIUITests" */;
+			buildPhases = (
+				C17778F32E58EAA800D57CAD /* Sources */,
+				C17778F42E58EAA800D57CAD /* Frameworks */,
+				C17778F52E58EAA800D57CAD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C17778F92E58EAA800D57CAD /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C17778FA2E58EAA800D57CAD /* LabelGUIUITests */,
+			);
+			name = LabelGUIUITests;
+			packageProductDependencies = (
+			);
+			productName = LabelGUIUITests;
+			productReference = C17778F72E58EAA800D57CAD /* label.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C17778A02E58E81300D57CAD /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					C17778A82E58E81300D57CAD = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					C17778B32E58E81300D57CAD = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					C17778D42E58EA2F00D57CAD = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					C17778DF2E58EAA700D57CAD = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					C17778EC2E58EAA800D57CAD = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = C17778DF2E58EAA700D57CAD;
+					};
+					C17778F62E58EAA800D57CAD = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = C17778DF2E58EAA700D57CAD;
+					};
+				};
+			};
+			buildConfigurationList = C17778A32E58E81300D57CAD /* Build configuration list for PBXProject "LabelKit" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = C177789F2E58E81300D57CAD;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C17778C32E58E91700D57CAD /* XCRemoteSwiftPackageReference "Stencil" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = C17778AA2E58E81300D57CAD /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C17778A82E58E81300D57CAD /* LabelKit */,
+				C17778B32E58E81300D57CAD /* LabelKitTests */,
+				C17778D42E58EA2F00D57CAD /* LabelCLI */,
+				C17778DF2E58EAA700D57CAD /* LabelGUI */,
+				C17778EC2E58EAA800D57CAD /* LabelGUITests */,
+				C17778F62E58EAA800D57CAD /* LabelGUIUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C17778A72E58E81300D57CAD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C17778B22E58E81300D57CAD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C17778DE2E58EAA700D57CAD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C17778EB2E58EAA800D57CAD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C17778F52E58EAA800D57CAD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C17778A52E58E81300D57CAD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C17778B02E58E81300D57CAD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C17778D12E58EA2F00D57CAD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C17778DC2E58EAA700D57CAD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C17778E92E58EAA800D57CAD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C17778F32E58EAA800D57CAD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C17778B72E58E81300D57CAD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C17778A82E58E81300D57CAD /* LabelKit */;
+			targetProxy = C17778B62E58E81300D57CAD /* PBXContainerItemProxy */;
+		};
+		C17778EF2E58EAA800D57CAD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C17778DF2E58EAA700D57CAD /* LabelGUI */;
+			targetProxy = C17778EE2E58EAA800D57CAD /* PBXContainerItemProxy */;
+		};
+		C17778F92E58EAA800D57CAD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C17778DF2E58EAA700D57CAD /* LabelGUI */;
+			targetProxy = C17778F82E58EAA800D57CAD /* PBXContainerItemProxy */;
+		};
+		C177790C2E58EACA00D57CAD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C17778A82E58E81300D57CAD /* LabelKit */;
+			targetProxy = C177790B2E58EACA00D57CAD /* PBXContainerItemProxy */;
+		};
+		C17779112E58EAE000D57CAD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C17778A82E58E81300D57CAD /* LabelKit */;
+			targetProxy = C17779102E58EAE000D57CAD /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		C17778BB2E58E81300D57CAD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = RFDDK5QUG8;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		C17778BC2E58E81300D57CAD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = RFDDK5QUG8;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		C17778BE2E58E81300D57CAD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RFDDK5QUG8;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.peterichardson.LabelKit;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_MODULE = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		C17778BF2E58E81300D57CAD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RFDDK5QUG8;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.peterichardson.LabelKit;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_MODULE = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		C17778C12E58E81300D57CAD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RFDDK5QUG8;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.peterichardson.LabelKitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		C17778C22E58E81300D57CAD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RFDDK5QUG8;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.peterichardson.LabelKitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		C17778DA2E58EA2F00D57CAD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = RFDDK5QUG8;
+				ENABLE_HARDENED_RUNTIME = YES;
+				PRODUCT_NAME = label;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		C17778DB2E58EA2F00D57CAD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = RFDDK5QUG8;
+				ENABLE_HARDENED_RUNTIME = YES;
+				PRODUCT_NAME = label;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		C17779002E58EAA800D57CAD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = LabelGUI/LabelGUI.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RFDDK5QUG8;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.peterichardson.LabelGUI;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		C17779012E58EAA800D57CAD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = LabelGUI/LabelGUI.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RFDDK5QUG8;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.peterichardson.LabelGUI;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		C17779032E58EAA800D57CAD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RFDDK5QUG8;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.peterichardson.LabelGUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LabelGUI.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LabelGUI";
+			};
+			name = Debug;
+		};
+		C17779042E58EAA800D57CAD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RFDDK5QUG8;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.peterichardson.LabelGUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LabelGUI.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LabelGUI";
+			};
+			name = Release;
+		};
+		C17779062E58EAA800D57CAD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RFDDK5QUG8;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.peterichardson.LabelGUIUITests;
+				PRODUCT_NAME = label;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = LabelGUI;
+			};
+			name = Debug;
+		};
+		C17779072E58EAA800D57CAD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RFDDK5QUG8;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.peterichardson.LabelGUIUITests;
+				PRODUCT_NAME = label;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = LabelGUI;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C17778A32E58E81300D57CAD /* Build configuration list for PBXProject "LabelKit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C17778BB2E58E81300D57CAD /* Debug */,
+				C17778BC2E58E81300D57CAD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C17778BD2E58E81300D57CAD /* Build configuration list for PBXNativeTarget "LabelKit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C17778BE2E58E81300D57CAD /* Debug */,
+				C17778BF2E58E81300D57CAD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C17778C02E58E81300D57CAD /* Build configuration list for PBXNativeTarget "LabelKitTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C17778C12E58E81300D57CAD /* Debug */,
+				C17778C22E58E81300D57CAD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C17778D92E58EA2F00D57CAD /* Build configuration list for PBXNativeTarget "LabelCLI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C17778DA2E58EA2F00D57CAD /* Debug */,
+				C17778DB2E58EA2F00D57CAD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C17778FF2E58EAA800D57CAD /* Build configuration list for PBXNativeTarget "LabelGUI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C17779002E58EAA800D57CAD /* Debug */,
+				C17779012E58EAA800D57CAD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C17779022E58EAA800D57CAD /* Build configuration list for PBXNativeTarget "LabelGUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C17779032E58EAA800D57CAD /* Debug */,
+				C17779042E58EAA800D57CAD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C17779052E58EAA800D57CAD /* Build configuration list for PBXNativeTarget "LabelGUIUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C17779062E58EAA800D57CAD /* Debug */,
+				C17779072E58EAA800D57CAD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C17778C32E58E91700D57CAD /* XCRemoteSwiftPackageReference "Stencil" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stencilproject/Stencil.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.15.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C17778C42E58E91700D57CAD /* Stencil */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C17778C32E58E91700D57CAD /* XCRemoteSwiftPackageReference "Stencil" */;
+			productName = Stencil;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = C17778A02E58E81300D57CAD /* Project object */;
+}
