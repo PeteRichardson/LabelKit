@@ -15,26 +15,26 @@ enum LabelaryError: Error {
 }
 
 public func fetchLabelImageData(
-    dpmm: Int,  // e.g. 8 (203 dpi), 12 (300 dpi)
-    widthMM: Double,  // label width in mm
-    heightMM: Double,  // label height in mm
+    label: ZPLLabel,
     zpl: String,  // your ZPL
     index: Int = 0,  // page index
     acceptMime: String = "image/png"  // "image/png" or "application/pdf"
 ) async throws -> Data {
+    let dpmm = Int(round(Double(label.resolution) / 25.4))  // e.g. 8 (203 dpi), 12 (300 dpi)
+    let widthInches = Double(label.width) / Double(label.resolution)            // label width in Inches
+    let heightInches = Double(label.height) / Double(label.resolution)           // label height in Inches
 
     let allowed = [6, 8, 12, 24]  // Labelary-supported DPmm
     guard allowed.contains(dpmm) else { throw LabelaryError.invalidDPmm }
 
-    // Convert to inches for Labelary API
-    let widthInches = widthMM / 25.4
-    let heightInches = heightMM / 25.4
     let fmt = { (v: Double) in String(format: "%.3f", v).replacingOccurrences(of: ",", with: ".") }
     let sizeComponent = "\(fmt(widthInches))x\(fmt(heightInches))"
 
     let urlString =
         "https://api.labelary.com/v1/printers/\(dpmm)dpmm/labels/\(sizeComponent)/\(index)/"
     guard let url = URL(string: urlString) else { throw LabelaryError.badURL }
+    
+    print("urlstring: \(urlString)")
 
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
