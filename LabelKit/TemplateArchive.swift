@@ -18,6 +18,7 @@ public final class StencilTemplateStore: Loader {
     private let queue = DispatchQueue(label: "StencilTemplateStore.queue")
     private var archive = TemplateArchive()
     private(set) var fileURL: URL
+    private static let llMarker = "<<LL_MARKER>>"
 
     /// Designated initializer that ALWAYS prefers `preferredFolderName`.
     /// If the target JSON doesn't exist yet, we'll search `legacyFolderNames` and migrate the first one we find.
@@ -128,7 +129,13 @@ public final class StencilTemplateStore: Loader {
     // MARK: Convenience
 
     public func makeEnvironment(extensions: [Extension] = []) -> Environment {
-        Environment(loader: self, extensions: extensions)
+        let ext = Extension()
+        ext
+            .registerTag("ll") {
+                _,
+                _ in return Self.llMarker as! any NodeType
+            } // always outputs the marker
+        return Environment(loader: self, extensions: [ext])
     }
 
     public func render(name: String, context: [String: Any] = [:]) throws -> String {

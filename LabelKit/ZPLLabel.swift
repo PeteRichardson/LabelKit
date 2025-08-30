@@ -5,23 +5,9 @@
 //  Created by Peter Richardson on 8/23/25.
 //
 import Foundation
+import Network
 
-// will flesh out printer struct over time.
-// e.g. maybe hasCutter, defaultFont, availableFlash, etc
-public struct Printer {
-    let resolution : Int    // dots per inch
-}
 
-public enum StandardPrinter {
-    case ZD620_203
-
-    var spec: Printer {
-        switch self {
-        case .ZD620_203:
-            return Printer(resolution: 203)
-        }
-    }
-}
 public struct ZPLLabelGeometry {
     // All measurements are stored in Inches
     let widthInches: Double  // = e.g. 2.0
@@ -31,26 +17,29 @@ public struct ZPLLabelGeometry {
 
 public enum StandardLabel {
     case Roll2x1
+    case Roll4
     
     var geo: ZPLLabelGeometry {
         switch self {
         case .Roll2x1:
             return ZPLLabelGeometry(widthInches: 2, heightInches: 1, gapInches: 0.125)
+        case .Roll4:
+            return ZPLLabelGeometry(widthInches: 4, heightInches: 0, gapInches: 0)
         }
     }
 }
 
 public struct ZPLLabel {
     // all measurements are in dots
-    let width: Int  // in dots
-    let height: Int // in dots
-    let gap: Int    // in dots
-    let resolution : Int  // dpi
+    public let width: Int  // in dots
+    public var height: Int // in dots
+    public var gap: Int    // in dots
+    public var resolution : Int  // dpi
     
     // convenience initializer for predefined label sizes and printers
     // e.g. label = ZPLLabel(.Roll2x1, .ZD620_203)
-    public init(label: StandardLabel, for printer: StandardPrinter) {
-        self = .init(geo: label.geo, atDPI: printer.spec.resolution)
+    public init(label: StandardLabel, for printer: Printer) {
+        self = .init(geo: label.geo, atDPI: printer.resolution)
     }
     
     init(geo: ZPLLabelGeometry, atDPI resolution: Int) {
