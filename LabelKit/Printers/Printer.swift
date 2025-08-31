@@ -5,7 +5,6 @@
 //  Created by Peter Richardson on 8/22/25.
 //
 
-import Network
 import Foundation
 
 // MARK: - Core protocol
@@ -40,61 +39,6 @@ public enum Model {
     }
 }
 
-// MARK: - A concrete printer implementation (example: raw TCP 9100)
-
-public struct NetworkZPLPrinter: Printer {
-    public let model: Model
-    public let resolution: Int
-    public let host: String
-    public let port: UInt16
-
-    public init(model: Model, resolution: Int, host: String, port: UInt16 = 9100) {
-        self.model = model
-        self.resolution = resolution
-        self.host = host
-        self.port = port
-    }
-
-    public func print(_ zpl: String) throws {
-        Task {
-            do {
-                let conn = NWConnection(
-                    host: NWEndpoint.Host(host),
-                    port: NWEndpoint.Port(rawValue: port)!,
-                    using: .tcp
-                )
-                try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-                    conn.stateUpdateHandler = { state in
-                        switch state {
-                        case .ready:
-                            conn.send(
-                                content: zpl.data(using: .utf8),
-                                completion: .contentProcessed { sendError in
-                                    if let sendError = sendError {
-                                        conn.cancel()
-                                        cont.resume(throwing: sendError)
-                                    } else {
-                                        conn.cancel()
-                                        cont.resume(returning: ())
-                                    }
-                                }
-                            )
-                        case .failed(let error):
-                            conn.cancel()
-                            cont.resume(throwing: error)
-                        default:
-                            break
-                        }
-                    }
-                    conn.start(queue: .global())
-                }
-
-            } catch {
-                try print("Error: \(error)")
-            }
-        }
-    }
-}
 
 
 // MARK: - StandardPrinter: façade + validation + conveniences
@@ -134,19 +78,3 @@ public enum PrinterConfigError: Error, CustomStringConvertible {
     }
 }
 
-
-public func showImageInITerm2(data: Data) {
-    // Base64-encode the image
-    let base64 = data.base64EncodedString()
-
-    // iTerm2 escape sequence format for inline images
-    let esc = "\u{1b}"  // Escape character
-    let osc = "]"
-    let st = "\\"
-
-    let header = "\(esc)\(osc)1337;File=inline=1;width=auto;height=auto;preserveAspectRatio=1:"
-    let footer = "\(esc)\(st)"
-
-    // Print the sequence to the terminal
-    print("\(header)\(base64)\(footer)")
-}
