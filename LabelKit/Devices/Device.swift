@@ -7,7 +7,27 @@
 
 import Foundation
 
-// MARK: - Core protocol
+/// What a device can do (model, dpi, print area limits, etc.)
+public struct DeviceCapabilities: Hashable {
+    public let model: String
+    public let supportedDPIs: Set<DPI>
+    public let maxWidthDots: Int
+    public let maxLengthDots: Int
+    
+    public init(model: String, supportedDPIs: Set<DPI>, maxWidthDots: Int, maxLengthDots: Int) {
+        self.model = model
+        self.supportedDPIs = supportedDPIs
+        self.maxWidthDots = maxWidthDots
+        self.maxLengthDots = maxLengthDots
+    }
+}
+
+public protocol Device {
+    var name: String { get }
+    var dpi: DPI { get }
+    var capabilities: DeviceCapabilities { get }
+}
+
 
 public protocol Printer {
     var model: Model { get }

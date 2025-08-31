@@ -15,7 +15,7 @@ enum LabelaryError: Error {
 }
 
 public func fetchLabelImageData(
-    label: ZPLLabel,
+    label: OldZPLLabel,
     zpl: String,  // your ZPL
     index: Int = 0,  // page index
     acceptMime: String = "image/png"  // "image/png" or "application/pdf"

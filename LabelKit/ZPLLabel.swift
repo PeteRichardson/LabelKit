@@ -7,6 +7,20 @@
 import Foundation
 import Network
 
+public protocol Label {
+    /// Produce ZPL for this label (templates can render here).
+    func zpl() throws -> String
+}
+
+public struct ZPLLabel: Label {
+    public let zplSource: String
+    public func zpl() throws -> String { zplSource }
+    
+    public init(_ zplSource: String) {
+        self.zplSource = zplSource
+    }
+}
+
 
 public struct ZPLLabelGeometry {
     // All measurements are stored in Inches
@@ -29,7 +43,7 @@ public enum StandardLabel {
     }
 }
 
-public struct ZPLLabel {
+public struct OldZPLLabel {
     // all measurements are in dots
     public let width: Int  // in dots
     public var height: Int // in dots
