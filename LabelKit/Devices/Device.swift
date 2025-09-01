@@ -9,13 +9,11 @@ import Foundation
 
 /// What a device can do (model, dpi, print area limits, etc.)
 public struct DeviceCapabilities: Hashable {
-    public let model: String
     public let supportedDPIs: Set<DPI>
     public let maxWidthDots: Int
     public let maxLengthDots: Int
     
-    public init(model: String, supportedDPIs: Set<DPI>, maxWidthDots: Int, maxLengthDots: Int) {
-        self.model = model
+    public init(supportedDPIs: Set<DPI>, maxWidthDots: Int, maxLengthDots: Int) {
         self.supportedDPIs = supportedDPIs
         self.maxWidthDots = maxWidthDots
         self.maxLengthDots = maxLengthDots

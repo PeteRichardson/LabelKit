@@ -25,7 +25,7 @@ struct ZebraZD620: Device {
     var dpi: DPI = .dpi300
     let name = "ZD620"
     let capabilities = DeviceCapabilities(
-        model: "ZD620", supportedDPIs: [.dpi300],
+        supportedDPIs: [.dpi300],
         maxWidthDots: 1200, maxLengthDots: 12000
     )
 }
