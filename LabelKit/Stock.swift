@@ -5,23 +5,42 @@
 //  Created by Peter Richardson on 8/31/25.
 //
 
-public struct Stock: Hashable {
-    public let widthDots: Int
-    public let heightDots: Int
+public struct Stock : Hashable {
+    public let widthInches: Double
+    public let heightInches: Double
     public let isContinuous: Bool
-    public let gapDots: Int
+    public let gapInches: Double
+    
+    public init(widthInches: Double, heightInches: Double, isContinuous: Bool, gapInches: Double) {
+        self.widthInches = widthInches
+        self.heightInches = heightInches
+        self.isContinuous = isContinuous
+        self.gapInches = gapInches
+    }
+}
 
-    public init(widthInches: Double, heightInches: Double, dpi: DPI, continuous: Bool, gapInches: Double) {
-        self.init(widthDots: Int((widthInches * Double(dpi.rawValue)).rounded()),
-                  heightDots:  Int((heightInches * Double(dpi.rawValue)).rounded()),
-                  continuous: continuous,
-                  gapDots: Int((gapInches * Double(dpi.rawValue)).rounded()))
+enum Units {
+    static let millimetersPerInch: Double = 25.4
+}
+extension Stock {
+    
+    func widthDots(at dpi: DPI) -> Int {
+        Int((widthInches * Double(dpi.rawValue)).rounded())
+    }
+    func heightDots(at dpi: DPI) -> Int {
+        Int((heightInches * Double(dpi.rawValue)).rounded())
+    }
+    func gapDots(at dpi: DPI) -> Int {
+        Int((gapInches * Double(dpi.rawValue)).rounded())
     }
     
-    public init(widthDots: Int, heightDots: Int, continuous: Bool, gapDots: Int) {
-        self.widthDots = widthDots
-        self.heightDots = heightDots
-        self.isContinuous = continuous
-        self.gapDots = gapDots
+    func widthMM() -> Double {
+        widthInches * Units.millimetersPerInch
+    }
+    func heightMM() -> Double {
+        heightInches * Units.millimetersPerInch
+    }
+    func gapMM() -> Double {
+        gapInches * Units.millimetersPerInch
     }
 }

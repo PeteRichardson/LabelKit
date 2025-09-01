@@ -15,14 +15,15 @@ enum LabelaryError: Error {
 }
 
 public func fetchLabelImageData(
-    label: OldZPLLabel,
-    zpl: String,  // your ZPL
+    label: ZPLLabel,
+    stock: Stock,
+    dpi: DPI,
     index: Int = 0,  // page index
     acceptMime: String = "image/png"  // "image/png" or "application/pdf"
 ) async throws -> Data {
-    let dpmm = Int(round(Double(label.resolution) / 25.4))  // e.g. 8 (203 dpi), 12 (300 dpi)
-    let widthInches = Double(label.width) / Double(label.resolution)            // label width in Inches
-    let heightInches = Double(label.height) / Double(label.resolution)           // label height in Inches
+    let dpmm = Int(round(Double(dpi.rawValue) / 25.4))  // e.g. 8 (203 dpi), 12 (300 dpi)
+    let widthInches = stock.widthInches
+    let heightInches = stock.heightInches
 
     let allowed = [6, 8, 12, 24]  // Labelary-supported DPmm
     guard allowed.contains(dpmm) else { throw LabelaryError.invalidDPmm }
@@ -39,7 +40,7 @@ public func fetchLabelImageData(
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
     request.setValue(acceptMime, forHTTPHeaderField: "Accept")
-    request.httpBody = zpl.data(using: .utf8)
+    request.httpBody = try label.zpl().data(using: .utf8)
 
     let (data, response) = try await URLSession.shared.data(for: request)
 
