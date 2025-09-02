@@ -5,7 +5,7 @@
 //  Created by Peter Richardson on 8/31/25.
 //
 
-public struct Stock : Hashable {
+public struct Stock : Hashable, Sendable {
     public let widthInches: Double
     public let heightInches: Double
     public let isContinuous: Bool
@@ -24,23 +24,23 @@ enum Units {
 }
 extension Stock {
     
-    func widthDots(at dpi: DPI) -> Int {
+    public func widthDots(at dpi: DPI) -> Int {
         Int((widthInches * Double(dpi.rawValue)).rounded())
     }
-    func heightDots(at dpi: DPI) -> Int {
+    public func heightDots(at dpi: DPI) -> Int {
         Int((heightInches * Double(dpi.rawValue)).rounded())
     }
-    func gapDots(at dpi: DPI) -> Int {
+    public func gapDots(at dpi: DPI) -> Int {
         Int((gapInches * Double(dpi.rawValue)).rounded())
     }
     
-    func widthMM() -> Double {
+    public func widthMM() -> Double {
         widthInches * Units.millimetersPerInch
     }
-    func heightMM() -> Double {
+    public func heightMM() -> Double {
         heightInches * Units.millimetersPerInch
     }
-    func gapMM() -> Double {
+    public func gapMM() -> Double {
         gapInches * Units.millimetersPerInch
     }
 }

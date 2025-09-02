@@ -28,26 +28,34 @@ let zpl = try loadSomeZPL()
 let label: ZPLLabel = ZPLLabel(zpl)
 let zd620 = Device ( name:"ZD620", nativeDPI: .dpi300, maxWidthDots: 1200, maxLengthDots: 12000)
 let stock = Stock(widthInches: 2.0, heightInches: 1.0, isContinuous: false, gapInches: 0.125)
-let opts  = RenderOptions(for: zd620, stock: stock)
+let geometry = RenderGeometry(
+    dpi: zd620.nativeDPI.rawValue,
+    widthDots: stock.widthDots(at: zd620.nativeDPI),
+    heightDots: stock.heightDots(at: zd620.nativeDPI)
+)
+let zplopts  = ZPLOptions(geometry: geometry, stock: stock, device: zd620)
 
-let engine = ZPLEngine()
-let svc = PrintService(engine: engine)
+let engine = DefaultZPLEngine()
 
-// 1) Print to a real printer
-try await svc.submit(PrintJob(label: label, options: opts, device: zd620, mode: .zpl,
-                        target: NetworkTarget(device: zd620, host: "192.168.0.133", port: 9100)))
+let finalZPL = try engine.render(label, options: zplopts)
 
-// 2) Pretty ZPL to stdout
-try await svc.submit(PrintJob(label: label, options: opts, device: zd620, mode: .zpl,
-                        target: StdoutTarget(pretty: true, device: zd620)))
+let printer = NetworkTarget(device: zd620, host: "192.168.0.133", port: 9100)
+try printer.send(Payload.zpl(finalZPL, dpi: zd620.nativeDPI))
 
-// 3) Rendered image to file
-try await svc.submit(PrintJob(label: label, options: opts, device: zd620, mode: .image,
-                              target: FileTarget(url: URL(fileURLWithPath: "/tmp/label.png"), device: zd620)))
+let stdout = StdoutTarget(pretty: true, device: zd620)
+try stdout.send(Payload.zpl(finalZPL, dpi: zd620.nativeDPI), strict: true)
 
-// 4) Rendered image inline in iTerm2
-try await svc.submit(PrintJob(label: label, options: opts, device: zd620, mode: .image,
-                        target: ITerm2Target(device: zd620)))
+let iterm2 = ITerm2Target(device: zd620)
+let imageOpts = ImageRenderOptions(geometry: geometry, timeout: 2.0)
+let png = try await LabelaryImageRenderer().render(from: finalZPL, options: imageOpts)
+try iterm2.send(Payload.png(png, dpi: zd620.nativeDPI), strict: true)
+
+let helperURL = URL(fileURLWithPath: "/Users/pete/bin/zpl2png")
+let png2 = try await ZPL2PNGRenderer(helperURL: helperURL).render(
+    from: finalZPL,
+    options: imageOpts
+)
+try iterm2.send(Payload.png(png2, dpi: zd620.nativeDPI), strict: true)
 
 try await Task.sleep(nanoseconds: 200_000_000)  // 0.2ms grace period in case main quits too soon
 

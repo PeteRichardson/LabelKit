@@ -16,7 +16,7 @@ import Foundation
 // install Stock.
 // e.g. a ZD620 can print 4", but the current Stock might be a 2"x1" label.
 // so Device.maxWidthDots would be 1200 (for a 300 dpi printhead)
-public struct Device {
+public struct Device : Hashable, Sendable {
     public var name: String
     public var nativeDPI: DPI
     public let maxWidthDots: Int
@@ -29,7 +29,7 @@ public struct Device {
     }
 }
 
-public enum DPI: Int, CaseIterable, Hashable {
+public enum DPI: Int, CaseIterable, Hashable, Sendable {
     case dpi203 = 203
     case dpi300 = 300
     case dpi600 = 600

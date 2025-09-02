@@ -54,6 +54,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		C14A4AC62E677617003AC30E /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Helpers;
+			dstSubfolderSpec = 1;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C17778D32E58EA2F00D57CAD /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -96,9 +105,36 @@
 		C17778F72E58EAA800D57CAD /* label.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = label.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C14A4AC52E677614003AC30E /* Exceptions for "LabelKit" folder in "LabelKit" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Helpers/zpl2png,
+			);
+			target = C17778A82E58E81300D57CAD /* LabelKit */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		C14A4AC82E677633003AC30E /* Exceptions for "LabelKit" folder in "Copy Files" phase from "LabelKit" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			attributesByRelativePath = {
+				Helpers/zpl2png = (CodeSignOnCopy, );
+			};
+			buildPhase = C14A4AC62E677617003AC30E /* CopyFiles */;
+			membershipExceptions = (
+				Helpers/zpl2png,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C17778AB2E58E81300D57CAD /* LabelKit */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C14A4AC52E677614003AC30E /* Exceptions for "LabelKit" folder in "LabelKit" target */,
+				C14A4AC82E677633003AC30E /* Exceptions for "LabelKit" folder in "Copy Files" phase from "LabelKit" target */,
+			);
 			path = LabelKit;
 			sourceTree = "<group>";
 		};
@@ -234,6 +270,7 @@
 				C17778A52E58E81300D57CAD /* Sources */,
 				C17778A62E58E81300D57CAD /* Frameworks */,
 				C17778A72E58E81300D57CAD /* Resources */,
+				C14A4AC62E677617003AC30E /* CopyFiles */,
 			);
 			buildRules = (
 			);

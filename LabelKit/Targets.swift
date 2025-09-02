@@ -42,7 +42,7 @@ public struct NetworkTarget: Target {
         }
     }
 
-    private func sendRaw(_ data: Data) throws {
+    public func sendRaw(_ data: Data) throws {
          Task {
             do {
                 let conn = NWConnection(
