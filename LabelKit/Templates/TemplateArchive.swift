@@ -22,37 +22,9 @@ public final class StencilTemplateStore: Loader {
 
     /// Designated initializer that ALWAYS prefers `preferredFolderName`.
     /// If the target JSON doesn't exist yet, we'll search `legacyFolderNames` and migrate the first one we find.
-    public init(
-        filename: String = "templates.json",
-        preferredFolderName: String,
-        legacyFolderNames: [String] = []  // e.g. [Bundle.main.bundleIdentifier, ProcessInfo.processName].compactMap { $0 }
-    ) throws {
-        let fm = FileManager.default
-
-        // ~/Library/Application Support
-        let appSupport = try fm.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-
-        // Preferred target folder
-        let preferredFolder = appSupport.appendingPathComponent(preferredFolderName, isDirectory: true)
-        if !fm.fileExists(atPath: preferredFolder.path) {
-            try fm.createDirectory(at: preferredFolder, withIntermediateDirectories: true)
-        }
-        let preferredFile = preferredFolder.appendingPathComponent(filename)
-
-        // If preferred file missing, try to migrate from legacy locations
-        if !fm.fileExists(atPath: preferredFile.path) {
-            if let (legacyFile, _) = Self.findFirstExistingJSON(
-                filename: filename,
-                folderNames: legacyFolderNames,
-                under: appSupport,
-                fm: fm
-            ) {
-                // Copy (don’t move) to keep legacy intact, but you can switch to move if you prefer.
-                try fm.copyItem(at: legacyFile, to: preferredFile)
-            }
-        }
-
-        self.fileURL = preferredFile
+    public init() throws {
+        let file = try SharedStore.templatesURL()
+        self.fileURL = file
     }
 
     private static func findFirstExistingJSON(
@@ -140,5 +112,41 @@ public final class StencilTemplateStore: Loader {
 
     public func render(name: String, context: [String: Any] = [:]) throws -> String {
         try makeEnvironment().renderTemplate(name: name, context: context)
+    }
+}
+
+
+enum SharedStore {
+    /// Your App Group ID
+    static let groupID = "group.com.peterichardson.labelkit"
+
+    /// Path inside the group container where you keep app-support data
+    static let relativeSupportPath = "Library/Application Support/LabelKit"
+
+    /// URL for the shared Application Support folder, creating it if needed.
+    static func appSupportURL() throws -> URL {
+        // 1) Try App Group container (preferred)
+        if let groupURL = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: groupID
+        ) {
+            let support = groupURL.appendingPathComponent(relativeSupportPath, isDirectory: true)
+            try FileManager.default.createDirectory(at: support, withIntermediateDirectories: true)
+            return support
+        }
+
+        // 2) Fallbacks (for non-entitled callers):
+        //    - If the process is non-sandboxed CLI, we can still address the group container by path.
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        let manualGroup = home
+            .appendingPathComponent("Library/Group Containers", isDirectory: true)
+            .appendingPathComponent(groupID, isDirectory: true)
+            .appendingPathComponent(relativeSupportPath, isDirectory: true)
+
+        try FileManager.default.createDirectory(at: manualGroup, withIntermediateDirectories: true)
+        return manualGroup
+    }
+
+    static func templatesURL() throws -> URL {
+        try appSupportURL().appendingPathComponent("templates.json", isDirectory: false)
     }
 }

@@ -12,7 +12,7 @@ import Stencil
 
 func loadSomeZPL() throws -> String {
     // Get Templates from Application Support/.../templates.json
-    let store = try StencilTemplateStore(preferredFolderName: "com.peterichardson.label")
+    let store = try StencilTemplateStore()
     try store.load()
 
     // Render the given template
@@ -36,6 +36,8 @@ let geometry = RenderGeometry(
 let zplopts  = ZPLOptions(geometry: geometry, stock: stock, device: zd620)
 
 let engine = DefaultZPLEngine()
+
+await label.renderNow()
 
 let finalZPL = try engine.render(label, options: zplopts)
 
