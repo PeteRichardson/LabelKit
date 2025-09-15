@@ -27,37 +27,13 @@ struct ContentView: View {
     @State private var label: ZPLLabel
     
     private static func loadSomeZPL() -> String {
-        do {
-            // Get Templates from Application Support/.../templates.json
-            let store = try StencilTemplateStore()
-            try store.load()
-            
-            // Render the given template
-            //let llMarker = "<<LL_MARKER>>"    // set up context that allows dynamic ^LL command
-            let llMarker = ""    // set up context that allows dynamic ^LL command
-            let ctx = ["ll_marker" :  llMarker] as [String: Any]
-            return try store.render(name: "label", context: ctx)
-        } catch {
-            return """
-                   ^XA
-                   
-                   ^FO20,40
-                   ^A0N,80,80
-                   ^FDZPL Editor^FS
-                   
-                   ^FO20,120
-                   ^A0N,80,80
-                   ^FDTest!^FS
-                   
-                   ^XZ
-                   """
-        }
+        return "{{label}}"
     }
     
     // New initializer lets callers pass initial text
     init(initialText: String? = nil) {
         let text = initialText ?? Self.loadSomeZPL()
-        _label = State(initialValue: ZPLLabel(text))
+        label = ZPLLabel(text)
     }
     
     private static let defaultDebounceDelay = Duration.milliseconds(800)
@@ -76,7 +52,9 @@ struct ContentView: View {
             )
             let zplopts  = ZPLOptions(geometry: geometry, stock: stock, device: zd620)
             
-            let engine = DefaultZPLEngine()
+            guard let engine = StencilZPLEngine() else {
+                fatalError("Couldn't create ZPLEngine")
+            }
             
             let finalZPL = try engine.render(label, options: zplopts)
             

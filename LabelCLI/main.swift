@@ -35,11 +35,11 @@ let geometry = RenderGeometry(
 )
 let zplopts  = ZPLOptions(geometry: geometry, stock: stock, device: zd620)
 
-let engine = DefaultZPLEngine()
+let engine = StencilZPLEngine()
 
 await label.renderNow()
 
-let finalZPL = try engine.render(label, options: zplopts)
+let finalZPL = try engine?.render(label, options: zplopts) ?? label.zpl()
 
 let printer = NetworkTarget(device: zd620, host: "192.168.0.133", port: 9100)
 try printer.send(Payload.zpl(finalZPL, dpi: zd620.nativeDPI))

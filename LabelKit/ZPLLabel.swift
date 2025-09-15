@@ -20,7 +20,7 @@ public final class ZPLLabel: Label {
     public var rawTemplate: String { didSet { scheduleRender() } }
 
     // Finalized ZPL after Stencil rendering (middle editor shows this)
-    public private(set) var renderedZPL: String = ""
+    public private(set) var renderedZPL: String = "<not rendered yet>"
 
     // Arbitrary data used by the template
     public var context: [String: Any] = [:] { didSet { scheduleRender() } }

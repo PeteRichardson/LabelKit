@@ -19,13 +19,38 @@ public protocol ImageRenderer: Sendable {
     func render(from zpl: String, options: ImageRenderOptions) async throws -> Data
 }
 
+
+/// A ZPLEngine can modify raw zpl before rendering.
+/// Labels have a (possibly empty) list of ZPLEngine instances to apply.
 protocol ZPLEngine {
     func render(_ label: Label, options: ZPLOptions) throws -> String
 }
 
-public struct DefaultZPLEngine: ZPLEngine {
+/// A ZPLEngine that resolves Stencil templates in the raw zpl from a StencilTemplateStore
+public struct StencilZPLEngine: ZPLEngine {
+    private var templateStore : StencilTemplateStore? = nil
+    
+    public init? () {
+        do {
+            // Get Templates from Application Support/.../templates.json
+            templateStore = try StencilTemplateStore()
+            try templateStore!.load()
+        } catch {
+            print ("Error initializing DefaultZPLEngine::templateStore: \(error)")
+        }
+    }
+    
     public func render(_ label: Label, options: ZPLOptions) throws -> String {
-        var zpl = try label.zpl()
+        var zpl : String = ""
+        
+        //let llMarker = "<<LL_MARKER>>"    // set up context that allows dynamic ^LL command
+        let llMarker = ""    // set up context that allows dynamic ^LL command
+
+        if templateStore != nil {
+            // Render the given template
+            let ctx = ["ll_marker" :  llMarker] as [String: Any]
+            zpl = try templateStore!.render(name: "label", context: ctx)
+        }
         
         // Ensure ^XA/^XZ
         if !zpl.contains("^XA") { zpl = "^XA\n" + zpl }
@@ -37,7 +62,6 @@ public struct DefaultZPLEngine: ZPLEngine {
         // 2) Handle length:
         //  - For continuous: compute from content (your height estimator) and set ^LL
         //  - For die-cut: usually set ^LL near nominal height (plus safety margin)
-        let llMarker = "<<LL_MARKER>>"
         let ll = try computeLabelLengthDots(from: zpl, options: options)
         zpl = injectOrReplace(command: llMarker, value: ll+150, in: zpl)
         
@@ -52,7 +76,6 @@ public struct DefaultZPLEngine: ZPLEngine {
         return zpl
     }
     
-    // --- helpers you likely already have ---
     private func injectOrReplace(command: String, value: Int, in zpl: String) -> String {
         zpl.replacingOccurrences(of: command, with: "^LL\(value)")
     }
@@ -62,14 +85,13 @@ public struct DefaultZPLEngine: ZPLEngine {
         return estimator.estimateHeightDots()
     }
     
-    public init () {}
 }
 
 struct PreviewService {
-    let zplEngine = DefaultZPLEngine()
+    let zplEngine = StencilZPLEngine()
     let imageRenderer: ImageRenderer
     func png(for label: Label, zplOptions: ZPLOptions, imageOptions: ImageRenderOptions) async throws -> Data {
-        let zpl = try zplEngine.render(label, options: zplOptions)
+        let zpl = try zplEngine?.render(label, options: zplOptions) ?? "^FDNo ZPL Engine installed!^FS"
         return try await imageRenderer.render(from: zpl, options: imageOptions)
     }
 }
