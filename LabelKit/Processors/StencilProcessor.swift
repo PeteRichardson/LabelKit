@@ -1,5 +1,5 @@
 //
-//  Engine.swift
+//  StencilProcessor.swift
 //  LabelKit
 //
 //  Created by Peter Richardson on 8/31/25.
@@ -20,14 +20,14 @@ public protocol ImageRenderer: Sendable {
 }
 
 
-/// A ZPLEngine can modify raw zpl before rendering.
-/// Labels have a (possibly empty) list of ZPLEngine instances to apply.
-protocol ZPLEngine {
-    func render(_ label: Label, options: ZPLOptions) throws -> String
+/// A ZPLProcessor can modify raw zpl before rendering.
+/// Labels have a (possibly empty) list of ZPLProcessor instances to apply.
+protocol ZPLProcessor {
+    func process(_ label: Label, options: ZPLOptions) throws -> String
 }
 
-/// A ZPLEngine that resolves Stencil templates in the raw zpl from a StencilTemplateStore
-public struct StencilZPLEngine: ZPLEngine {
+/// A ZPLProcessor that resolves Stencil templates in the raw zpl from a StencilTemplateStore
+public struct StencilZPLProcessor: ZPLProcessor {
     private var templateStore : StencilTemplateStore? = nil
     
     public init? () {
@@ -36,11 +36,11 @@ public struct StencilZPLEngine: ZPLEngine {
             templateStore = try StencilTemplateStore()
             try templateStore!.load()
         } catch {
-            print ("Error initializing DefaultZPLEngine::templateStore: \(error)")
+            print ("Error initializing StencilZPLProcessor::templateStore: \(error)")
         }
     }
     
-    public func render(_ label: Label, options: ZPLOptions) throws -> String {
+    public func process(_ label: Label, options: ZPLOptions) throws -> String {
         var zpl : String = ""
         
         //let llMarker = "<<LL_MARKER>>"    // set up context that allows dynamic ^LL command
@@ -88,10 +88,10 @@ public struct StencilZPLEngine: ZPLEngine {
 }
 
 struct PreviewService {
-    let zplEngine = StencilZPLEngine()
+    let processor = StencilZPLProcessor()
     let imageRenderer: ImageRenderer
     func png(for label: Label, zplOptions: ZPLOptions, imageOptions: ImageRenderOptions) async throws -> Data {
-        let zpl = try zplEngine?.render(label, options: zplOptions) ?? "^FDNo ZPL Engine installed!^FS"
+        let zpl = try processor?.process(label, options: zplOptions) ?? "^FDNo ZPLProcessor installed, or processing failed!^FS"
         return try await imageRenderer.render(from: zpl, options: imageOptions)
     }
 }

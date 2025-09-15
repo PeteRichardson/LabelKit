@@ -52,11 +52,11 @@ struct ContentView: View {
             )
             let zplopts  = ZPLOptions(geometry: geometry, stock: stock, device: zd620)
             
-            guard let engine = StencilZPLEngine() else {
-                fatalError("Couldn't create ZPLEngine")
+            guard let processor = StencilZPLProcessor() else {
+                fatalError("Couldn't create StencilZPLProcessor")
             }
             
-            let finalZPL = try engine.render(label, options: zplopts)
+            let finalZPL = try processor.process(label, options: zplopts)
             
             let printer = NetworkTarget(device: zd620, host: "192.168.0.133", port: 9100)
             try printer.send(Payload.zpl(finalZPL, dpi: zd620.nativeDPI))
