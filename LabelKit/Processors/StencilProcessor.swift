@@ -15,16 +15,7 @@ enum PrintError: Error {
 }
 
 
-public protocol ImageRenderer: Sendable {
-    func render(from zpl: String, options: ImageRenderOptions) async throws -> Data
-}
 
-
-/// A ZPLProcessor can modify raw zpl before rendering.
-/// Labels have a (possibly empty) list of ZPLProcessor instances to apply.
-protocol ZPLProcessor {
-    func process(_ label: Label, options: ZPLOptions) throws -> String
-}
 
 /// A ZPLProcessor that resolves Stencil templates in the raw zpl from a StencilTemplateStore
 public struct StencilZPLProcessor: ZPLProcessor {
@@ -105,27 +96,6 @@ public struct RenderGeometry: Sendable {
         self.dpi = dpi
         self.widthDots = widthDots
         self.heightDots = heightDots
-    }
-}
-
-public struct ImageRenderOptions: Sendable {
-    public var geometry: RenderGeometry
-    public var timeout: TimeInterval = 10
-    public init(geometry: RenderGeometry, timeout: TimeInterval) {
-        self.geometry = geometry
-        self.timeout = timeout
-    }
-}
-
-public struct ZPLOptions: Sendable {
-    public var geometry: RenderGeometry
-    public var stock: Stock
-    public var device: Device
-    
-    public init(geometry: RenderGeometry, stock: Stock, device: Device) {
-        self.geometry = geometry
-        self.stock = stock
-        self.device = device
     }
 }
 
