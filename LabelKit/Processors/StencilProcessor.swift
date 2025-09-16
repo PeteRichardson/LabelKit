@@ -19,6 +19,7 @@ enum PrintError: Error {
 
 /// A ZPLProcessor that resolves Stencil templates in the raw zpl from a StencilTemplateStore
 public struct StencilZPLProcessor: ZPLProcessor {
+
     private var templateStore : StencilTemplateStore? = nil
     
     public init? () {
@@ -31,7 +32,7 @@ public struct StencilZPLProcessor: ZPLProcessor {
         }
     }
     
-    public func process(_ label: Label, options: ZPLOptions) throws -> String {
+    public func process(_ input: String, env: ZPLEnvironment) throws -> String {
         var zpl : String = ""
         
         //let llMarker = "<<LL_MARKER>>"    // set up context that allows dynamic ^LL command
@@ -53,15 +54,18 @@ public struct StencilZPLProcessor: ZPLProcessor {
         // 2) Handle length:
         //  - For continuous: compute from content (your height estimator) and set ^LL
         //  - For die-cut: usually set ^LL near nominal height (plus safety margin)
-        let ll = try computeLabelLengthDots(from: zpl, options: options)
+        let opts = env.options
+        let device = env.options.device
+        let stock = opts.stock
+        let ll = try computeLabelLengthDots(from: zpl, options: opts)
         zpl = injectOrReplace(command: llMarker, value: ll+150, in: zpl)
         
         // 3) Optional validation against device limits
-        guard  options.stock.widthDots(at: options.device.nativeDPI) <= options.device.maxWidthDots else {
-            throw PrintError.widthOverflow(requested: options.stock.widthDots(at: options.device.nativeDPI), max: options.device.maxWidthDots)
+        guard  stock.widthDots(at: device.nativeDPI) <= device.maxWidthDots else {
+            throw PrintError.widthOverflow(requested: stock.widthDots(at: device.nativeDPI), max: device.maxWidthDots)
         }
-        guard ll <= options.device.maxLengthDots else {
-            throw PrintError.lengthOverflow(requested: ll, max: options.device.maxLengthDots)
+        guard ll <= device.maxLengthDots else {
+            throw PrintError.lengthOverflow(requested: ll, max: device.maxLengthDots)
         }
         
         return zpl
@@ -81,8 +85,8 @@ public struct StencilZPLProcessor: ZPLProcessor {
 struct PreviewService {
     let processor = StencilZPLProcessor()
     let imageRenderer: ImageRenderer
-    func png(for label: Label, zplOptions: ZPLOptions, imageOptions: ImageRenderOptions) async throws -> Data {
-        let zpl = try processor?.process(label, options: zplOptions) ?? "^FDNo ZPLProcessor installed, or processing failed!^FS"
+    func png(for label: ZPLRepresentable, env: ZPLEnvironment, imageOptions: ImageRenderOptions) async throws -> Data {
+        let zpl = try processor?.process(label.zpl(), env: env) ?? "^FDNo ZPLProcessor installed, or processing failed!^FS"
         return try await imageRenderer.render(from: zpl, options: imageOptions)
     }
 }

@@ -24,7 +24,7 @@ private var editorFont: Font {
 
 struct ContentView: View {
     //@State private var text: String
-    @State private var label: ZPLLabel
+    @State private var label: StencilZPLLabel
     
     private static func loadSomeZPL() -> String {
         return "{{label}}"
@@ -33,7 +33,7 @@ struct ContentView: View {
     // New initializer lets callers pass initial text
     init(initialText: String? = nil) {
         let text = initialText ?? Self.loadSomeZPL()
-        label = ZPLLabel(text)
+        label = StencilZPLLabel(text)
     }
     
     private static let defaultDebounceDelay = Duration.milliseconds(800)
@@ -41,7 +41,7 @@ struct ContentView: View {
     @State private var autoRefreshTask: Task<Void, Never>? = nil
     @State private var autoRefreshEnabled = true
     
-    func sendZPL(label: ZPLLabel) {
+    func sendZPL(label: StencilZPLLabel) {
         do {
             let zd620 = Device ( name:"ZD620", nativeDPI: .dpi300, maxWidthDots: 1200, maxLengthDots: 12000)
             let stock = Stock(widthInches: 2.0, heightInches: 1.0, isContinuous: false, gapInches: 0.125)
@@ -51,12 +51,13 @@ struct ContentView: View {
                 heightDots: stock.heightDots(at: zd620.nativeDPI)
             )
             let zplopts  = ZPLOptions(geometry: geometry, stock: stock, device: zd620)
+            let zplenv = ZPLEnvironment(context: [:], options: zplopts)
             
             guard let processor = StencilZPLProcessor() else {
                 fatalError("Couldn't create StencilZPLProcessor")
             }
             
-            let finalZPL = try processor.process(label, options: zplopts)
+            let finalZPL = try processor.process(label.zpl(), env: zplenv)
             
             let printer = NetworkTarget(device: zd620, host: "192.168.0.133", port: 9100)
             try printer.send(Payload.zpl(finalZPL, dpi: zd620.nativeDPI))

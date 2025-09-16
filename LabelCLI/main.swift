@@ -25,7 +25,7 @@ func loadSomeZPL() throws -> String {
 
 let zpl = try loadSomeZPL()
 
-let label: ZPLLabel = ZPLLabel(zpl)
+let label: StencilZPLLabel = StencilZPLLabel(zpl)
 let zd620 = Device ( name:"ZD620", nativeDPI: .dpi300, maxWidthDots: 1200, maxLengthDots: 12000)
 let stock = Stock(widthInches: 2.0, heightInches: 1.0, isContinuous: false, gapInches: 0.125)
 let geometry = RenderGeometry(
@@ -34,12 +34,13 @@ let geometry = RenderGeometry(
     heightDots: stock.heightDots(at: zd620.nativeDPI)
 )
 let zplopts  = ZPLOptions(geometry: geometry, stock: stock, device: zd620)
+let zplenv = ZPLEnvironment(context: [:], options: zplopts)
 
 let processor = StencilZPLProcessor()
 
 await label.renderNow()
 
-let finalZPL = try processor?.process(label, options: zplopts) ?? label.zpl()
+let finalZPL = try processor?.process(label.zpl(), env: zplenv) ?? label.zpl()
 
 let printer = NetworkTarget(device: zd620, host: "192.168.0.133", port: 9100)
 try printer.send(Payload.zpl(finalZPL, dpi: zd620.nativeDPI))

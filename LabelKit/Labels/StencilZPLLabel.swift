@@ -7,15 +7,23 @@
 import Foundation
 import Stencil
 
-// MARK: - Public Label protocol remains unchanged
-public protocol Label {
-    /// Produce ZPL for this label (templates can render here).
-    func zpl() throws -> String
-}
+
+
+//@Observable
+//public final class ZPLLabel: ZPLRepresentable {
+//    public var rawText: String
+//    public func zpl() throws -> String {
+//        return rawText
+//    }
+//    
+//    public init(rawText: String) {
+//        self.rawText = rawText
+//    }
+//}
 
 // MARK: - Observable ZPLLabel that renders a Stencil template into finalized ZPL
 @Observable
-public final class ZPLLabel: Label {
+public final class StencilZPLLabel: ZPLRepresentable {
     // User-editable template (left editor binds to this)
     public var rawTemplate: String { didSet { scheduleRender() } }
 

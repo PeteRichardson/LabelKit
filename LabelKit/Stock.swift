@@ -44,3 +44,15 @@ extension Stock {
         gapInches * Units.millimetersPerInch
     }
 }
+
+
+public extension Stock {
+    enum Preset {
+        public static let label2x1 = Stock(
+            widthInches: 2.0,
+            heightInches: 1.0,
+            isContinuous: false,
+            gapInches: 0.125
+        )
+    }
+}

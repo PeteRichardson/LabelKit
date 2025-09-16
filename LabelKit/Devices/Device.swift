@@ -38,4 +38,14 @@ public enum DPI: Int, CaseIterable, Hashable, Sendable {
     }
 }
 
+public extension Device {
+    enum Preset {
+        public static let ZD620 = Device(
+            name: "ZD620",
+            nativeDPI: .dpi300,
+            maxWidthDots: 1200,
+            maxLengthDots: 12000
+        )
+    }
+}
 
