@@ -14,7 +14,23 @@ import Foundation
 /// - Barcode (^BC) -> barcodeHeight (if provided) else a default
 /// - Box/line (^GB) -> uses its height parameter
 /// Also captures ^LL (explicit length) and returns max(computed, LL).
-public struct ZPLLengthEstimator {
+public struct ZPLLengthEstimator: ZPLProcessor {
+    public func process(_ input: String, env: ZPLEnvironment) throws -> String {
+        //let llMarker = "<<LL_MARKER>>"    // set up context that allows dynamic ^LL command
+        let llMarker = ""    // set up context that allows dynamic ^LL command
+
+        let device = env.options.device
+        let zplForEstimation = zpl.replacingOccurrences(of: "llMarker", with: "")
+        let estimator = ZPLLengthEstimator(zpl: zplForEstimation)
+        let ll = estimator.estimateHeightDots()
+        let newzpl = zpl.replacingOccurrences(of: llMarker, with: "^LL\(ll+150)")
+        
+        guard ll <= device.maxLengthDots else {
+            throw PrintError.lengthOverflow(requested: ll, max: device.maxLengthDots)
+        }
+        return newzpl
+    }
+
     public struct Config {
         var defaultFontHeight: Int  // dots, if no ^A has been set
         var defaultLineGap: Int  // dots between lines

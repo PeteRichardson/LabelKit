@@ -29,7 +29,6 @@ public struct StencilZPLProcessor: ZPLProcessor {
     }
     public func process(_ input: String, env: ZPLEnvironment) throws -> String {
         var zpl : String = ""
-        
         //let llMarker = "<<LL_MARKER>>"    // set up context that allows dynamic ^LL command
         let llMarker = ""    // set up context that allows dynamic ^LL command
 
@@ -52,27 +51,21 @@ public struct StencilZPLProcessor: ZPLProcessor {
         let opts = env.options
         let device = env.options.device
         let stock = opts.stock
-        let ll = try computeLabelLengthDots(from: zpl, options: opts)
-        zpl = injectOrReplace(command: llMarker, value: ll+150, in: zpl)
+//        let ll = try computeLabelLengthDots(from: zpl, options: opts)
+//        zpl = injectOrReplace(command: llMarker, value: ll+150, in: zpl)
         
         // 3) Optional validation against device limits
         guard  stock.widthDots(at: device.nativeDPI) <= device.maxWidthDots else {
             throw PrintError.widthOverflow(requested: stock.widthDots(at: device.nativeDPI), max: device.maxWidthDots)
         }
-        guard ll <= device.maxLengthDots else {
-            throw PrintError.lengthOverflow(requested: ll, max: device.maxLengthDots)
-        }
+//        guard ll <= device.maxLengthDots else {
+//            throw PrintError.lengthOverflow(requested: ll, max: device.maxLengthDots)
+//        }
         
         return zpl
     }
-    private func injectOrReplace(command: String, value: Int, in zpl: String) -> String {
-        zpl.replacingOccurrences(of: command, with: "^LL\(value)")
-    }
-    private func computeLabelLengthDots(from zpl: String, options: ZPLOptions) throws -> Int {
-        let zplForEstimation = zpl.replacingOccurrences(of: "llMarker", with: "")
-        let estimator = ZPLLengthEstimator(zpl: zplForEstimation)
-        return estimator.estimateHeightDots()
-    }
+
+
 }
 
 
