@@ -14,12 +14,8 @@ enum PrintError: Error {
     case lengthOverflow(requested: Int, max: Int)
 }
 
-
-
-
 /// A ZPLProcessor that resolves Stencil templates in the raw zpl from a StencilTemplateStore
 public struct StencilZPLProcessor: ZPLProcessor {
-
     private var templateStore : StencilTemplateStore? = nil
     
     public init? () {
@@ -31,7 +27,6 @@ public struct StencilZPLProcessor: ZPLProcessor {
             print ("Error initializing StencilZPLProcessor::templateStore: \(error)")
         }
     }
-    
     public func process(_ input: String, env: ZPLEnvironment) throws -> String {
         var zpl : String = ""
         
@@ -70,7 +65,6 @@ public struct StencilZPLProcessor: ZPLProcessor {
         
         return zpl
     }
-    
     private func injectOrReplace(command: String, value: Int, in zpl: String) -> String {
         zpl.replacingOccurrences(of: command, with: "^LL\(value)")
     }
@@ -79,23 +73,16 @@ public struct StencilZPLProcessor: ZPLProcessor {
         let estimator = ZPLLengthEstimator(zpl: zplForEstimation)
         return estimator.estimateHeightDots()
     }
-    
 }
 
-struct PreviewService {
-    let processor = StencilZPLProcessor()
-    let imageRenderer: ImageRenderer
-    func png(for label: ZPLRepresentable, env: ZPLEnvironment, imageOptions: ImageRenderOptions) async throws -> Data {
-        let zpl = try processor?.process(label.zpl(), env: env) ?? "^FDNo ZPLProcessor installed, or processing failed!^FS"
-        return try await imageRenderer.render(from: zpl, options: imageOptions)
-    }
-}
+
 
 
 public struct RenderGeometry: Sendable {
     public var dpi: Int
     public var widthDots: Int?      // optional; renderer may infer from ^PW
     public var heightDots: Int?     // optional; renderer may auto-size
+    
     public init(dpi: Int, widthDots: Int? = nil, heightDots: Int? = nil) {
         self.dpi = dpi
         self.widthDots = widthDots
