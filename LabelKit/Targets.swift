@@ -8,13 +8,18 @@
 import Foundation
 import Network
 
-/// Where the output goes (network socket, file, stdout, iTerm2, …)
 public enum Payload {
     case zpl(String, dpi: DPI)      // carry the render DPI with the ZPL
     case png(Data, dpi: DPI)
 }
 
-
+/// Target describes a delivery mechanism and where the output goes
+/// e.g. network socket, file, stdout, iTerm2, …
+/// This is different from Device, which describes capabilities (like nativeDPI))
+/// You might want the zpl generated for a 300 DPI ZD620, then sent to labelary
+/// to get an image, and then send that image to iTerm2 or to a file.
+/// Everything is the same up to the final "send to iTerm2" or "save to file" part.
+/// You are sending the same data to two different Targets.
 public protocol Target {
     var device: Device { get }
     func send(_ payload: Payload, strict: Bool) throws

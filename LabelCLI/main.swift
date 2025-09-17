@@ -50,7 +50,7 @@ try stdout.send(Payload.zpl(finalZPL, dpi: zd620.nativeDPI), strict: true)
 
 let iterm2 = ITerm2Target(device: zd620)
 let imageOpts = ImageRenderOptions(geometry: geometry, timeout: 2.0)
-let png = try await LabelaryImageRenderer().render(from: finalZPL, options: imageOpts)
+let png = try await LabelaryRenderer().render(from: finalZPL, options: imageOpts)
 try iterm2.send(Payload.png(png, dpi: zd620.nativeDPI), strict: true)
 
 let helperURL = URL(fileURLWithPath: "/Users/pete/bin/zpl2png")

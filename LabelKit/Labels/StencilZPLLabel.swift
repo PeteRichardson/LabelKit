@@ -44,7 +44,6 @@ public final class StencilZPLLabel: ZPLRepresentable {
         scheduleRender()
     }
 
-    // MARK: Label protocol
     public func zpl() throws -> String { renderedZPL }
 
     // MARK: Rendering

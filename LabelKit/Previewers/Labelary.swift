@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct LabelaryImageRenderer: ImageRenderer {
+public struct LabelaryRenderer: ImageRenderer {
 
     let session: URLSession = .shared
     public func render(from zpl: String, options: ImageRenderOptions) async throws -> Data {
