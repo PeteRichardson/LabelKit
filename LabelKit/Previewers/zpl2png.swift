@@ -36,8 +36,8 @@ public struct ZPL2PNGRenderer: ImageRenderer {
         p.executableURL = helperURL
         var args: [String] = []
         
-        let widthMM = Int(round(Double(options.geometry.widthDots!) / 25.4))
-        let heightMM = Int(round(Double(options.geometry.heightDots!) / 25.4))
+        let widthMM = Int(round(Double(options.geometry.widthDots!)  / Double(options.geometry.dpi)) * 25.4)
+        let heightMM = Int(round(Double(options.geometry.heightDots!) / Double(options.geometry.dpi)) * 25.4)
         args += ["--width-mm", String(widthMM)]
         args += ["--height-mm", String(heightMM)]
         args += ["--dpmm", String(Int(round(Double(options.geometry.dpi)/25.4)))]
