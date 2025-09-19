@@ -16,10 +16,7 @@ func loadSomeZPL() throws -> String {
     try store.load()
 
     // Render the given template
-    //let llMarker = "<<LL_MARKER>>"    // set up context that allows dynamic ^LL command
-    let llMarker = ""    // set up context that allows dynamic ^LL command
-    let ctx = ["ll_marker" :  llMarker] as [String: Any]
-    return try store.render(name: "label", context: ctx)
+    return try store.render(name: "label")
 }
 
 

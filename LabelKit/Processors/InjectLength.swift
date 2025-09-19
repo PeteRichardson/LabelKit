@@ -17,12 +17,16 @@ import Foundation
 /// is larger.
 public struct InjectLength: ZPLProcessor {
     public func process(_ input: String, env: ZPLEnvironment) throws -> String {
-        let llMarker = "<<LL_MARKER>>"    // set up context that allows dynamic ^LL command
-        
         let device = env.options.device
-        let zplForEstimation = input.replacingOccurrences(of: "llMarker", with: "")
-        let ll = ZPLLengthEstimator.estimate(zplForEstimation)
-        let newzpl = input.replacingOccurrences(of: llMarker, with: "^LL\(ll+150)")
+        let ll = ZPLLengthEstimator.estimate(input)
+        let newzpl: String
+        if !input.contains("^LL") {
+            newzpl = input.replacingOccurrences(of: "^XA",
+                                                with: "^XA\n^LL\(ll+150)")
+        } else {
+            newzpl = input.replacingOccurrences(of: "\\^LL\\d+", with: "^LL\(ll+150)",
+                                                options: .regularExpression)
+        }
         
         guard ll <= device.maxLengthDots else {
             throw PrintError.lengthOverflow(requested: ll, max: device.maxLengthDots)
