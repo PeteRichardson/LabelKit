@@ -6,11 +6,21 @@
 //
 
 import Testing
+import LabelKit
 
 struct ZPLLengthEstimatorTests {
 
-    @Test func <#test function name#>() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+    @Test func SimpleOriginPlusOneLine() async throws {
+        let zpl = """
+            ^XAs
+            ^FO40,40
+            ^A0N,40,40
+            ^FDHello, ZPL!^FS
+            ^XZ
+            """
+        
+        let ll = ZPLLengthEstimator.estimate(zpl)
+        #expect(ll == 80)
     }
 
 }

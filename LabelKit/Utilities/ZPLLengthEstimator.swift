@@ -15,15 +15,28 @@ import Foundation
 /// - Barcode (^BC) -> barcodeHeight (if provided) else a default
 /// - Box/line (^GB) -> uses its height parameter
 /// Also captures ^LL (explicit length) and returns max(computed, LL).
+///
+/// Consider using the static estimateLengthDots(_ zpl:) convenience function
+
 public struct ZPLLengthEstimator {
     public struct Config {
-        var defaultFontHeight: Int  // dots, if no ^A has been set
-        var defaultLineGap: Int  // dots between lines
-        var defaultBarcodeHeight: Int  // dots if ^BC height omitted
-        
-        public init(defaultFontHeight: Int = 30,
-                    defaultLineGap: Int = 2,
-                    defaultBarcodeHeight: Int = 100) {
+        public var defaultFontHeight: Int
+        public var defaultLineGap: Int
+        public var defaultBarcodeHeight: Int
+
+        // Single source of truth for defaults
+        public static let `default` = Config(
+            defaultFontHeight: 30,
+            defaultLineGap: 2,
+            defaultBarcodeHeight: 100
+        )
+
+        // Default initializer pulls from the canonical default
+        public init(
+            defaultFontHeight: Int = Config.default.defaultFontHeight,
+            defaultLineGap: Int = Config.default.defaultLineGap,
+            defaultBarcodeHeight: Int = Config.default.defaultBarcodeHeight
+        ) {
             self.defaultFontHeight = defaultFontHeight
             self.defaultLineGap = defaultLineGap
             self.defaultBarcodeHeight = defaultBarcodeHeight
@@ -39,7 +52,7 @@ public struct ZPLLengthEstimator {
     }
 
     /// Public API: returns estimated label height in dots.
-    public func estimateHeightDots() -> Int {
+    public func estimateLengthDots() -> Int {
         var state = ParserState(config: cfg)
         let tokens = tokenize(zpl)
 
@@ -367,4 +380,37 @@ private func measureFDText(_ payload: String, fontHeight: Int, lineGap: Int) -> 
     let lines = replaced.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
     let count = max(1, lines.count)  // consider at least one line even if empty
     return (count, fontHeight)
+}
+
+
+public extension ZPLLengthEstimator {
+    /// Convenience function that works for most situations.
+    /// 
+    ///
+    /// Example:
+    /// ```swift
+    /// let zpl = """
+    /// ^XA
+    /// ^FO0,0^FDHello^FS
+    /// ^XZ
+    /// """
+    /// let length = ZPLLengthEstimator.estimate(zpl)
+    /// print(length)
+    /// ```
+    ///
+    /// - Returns: Estimated label height in dots.
+    ///
+    static func estimate(
+        _ zpl: String,
+        defaultFontHeight: Int = Config.default.defaultFontHeight,
+        defaultLineGap: Int = Config.default.defaultLineGap,
+        defaultBarcodeHeight: Int = Config.default.defaultBarcodeHeight
+    ) -> Int {
+        let cfg = Config(
+            defaultFontHeight: defaultFontHeight,
+            defaultLineGap: defaultLineGap,
+            defaultBarcodeHeight: defaultBarcodeHeight
+        )
+        return ZPLLengthEstimator(zpl: zpl, config: cfg).estimateLengthDots()
+    }
 }

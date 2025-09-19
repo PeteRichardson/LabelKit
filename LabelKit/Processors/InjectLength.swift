@@ -21,8 +21,7 @@ public struct InjectLength: ZPLProcessor {
         
         let device = env.options.device
         let zplForEstimation = input.replacingOccurrences(of: "llMarker", with: "")
-        let estimator = ZPLLengthEstimator(zpl: zplForEstimation)
-        let ll = estimator.estimateHeightDots()
+        let ll = ZPLLengthEstimator.estimate(zplForEstimation)
         let newzpl = input.replacingOccurrences(of: llMarker, with: "^LL\(ll+150)")
         
         guard ll <= device.maxLengthDots else {
