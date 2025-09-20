@@ -17,8 +17,11 @@ enum PrintError: Error {
 /// A ZPLProcessor that resolves Stencil templates in the raw zpl from a StencilTemplateStore
 public struct StencilZPLProcessor: ZPLProcessor {
     private var templateStore : StencilTemplateStore? = nil
+    private var context: [String: Any]
     
-    public init? () {
+    public init? (context: [String: Any] = [:]) {
+        self.context = context
+        
         do {
             // Get Templates from Application Support/.../templates.json
             templateStore = try StencilTemplateStore()
@@ -29,39 +32,16 @@ public struct StencilZPLProcessor: ZPLProcessor {
     }
     public func process(_ input: String, env: ZPLEnvironment) throws -> String {
         var zpl : String = ""
-        //let llMarker = "<<LL_MARKER>>"    // set up context that allows dynamic ^LL command
-        let llMarker = ""    // set up context that allows dynamic ^LL command
 
         if templateStore != nil {
-            // Render the given template
-            let ctx = ["ll_marker" :  llMarker] as [String: Any]
-            zpl = try templateStore!.render(name: "label", context: ctx)
+            // Render the given zpl in the given context
+            zpl = try templateStore!.renderZPL(input, context: context)
         }
         
         // Ensure ^XA/^XZ
-        if !zpl.contains("^XA") { zpl = "^XA\n" + zpl }
-        if !zpl.contains("^XZ") { zpl += "\n^XZ" }
-        
-        // 1) Set print width from stock@dpi
-        //zpl = injectOrReplace(command: "^PW", value: options.printWidthDots, in: zpl)
-        
-        // 2) Handle length:
-        //  - For continuous: compute from content (your height estimator) and set ^LL
-        //  - For die-cut: usually set ^LL near nominal height (plus safety margin)
-        let opts = env.options
-        let device = env.options.device
-        let stock = opts.stock
-//        let ll = try computeLabelLengthDots(from: zpl, options: opts)
-//        zpl = injectOrReplace(command: llMarker, value: ll+150, in: zpl)
-        
-        // 3) Optional validation against device limits
-        guard  stock.widthDots(at: device.nativeDPI) <= device.maxWidthDots else {
-            throw PrintError.widthOverflow(requested: stock.widthDots(at: device.nativeDPI), max: device.maxWidthDots)
-        }
-//        guard ll <= device.maxLengthDots else {
-//            throw PrintError.lengthOverflow(requested: ll, max: device.maxLengthDots)
-//        }
-        
+        if !zpl.starts(with: "\\s+^XA") { zpl = "^XA\n" + zpl }
+        if !zpl.hasSuffix("^XZ\\s") { zpl += "\n^XZ" }
+
         return zpl
     }
 

@@ -18,7 +18,6 @@ public final class StencilTemplateStore: Loader {
     private let queue = DispatchQueue(label: "StencilTemplateStore.queue")
     private var archive = TemplateArchive()
     private(set) var fileURL: URL
-    private static let llMarker = "<<LL_MARKER>>"
 
     /// Designated initializer that ALWAYS prefers `preferredFolderName`.
     /// If the target JSON doesn't exist yet, we'll search `legacyFolderNames` and migrate the first one we find.
@@ -102,16 +101,28 @@ public final class StencilTemplateStore: Loader {
 
     public func makeEnvironment(extensions: [Extension] = []) -> Environment {
         let ext = Extension()
-        ext
-            .registerTag("ll") {
-                _,
-                _ in return Self.llMarker as! any NodeType
-            } // always outputs the marker
         return Environment(loader: self, extensions: [ext])
     }
 
     public func render(name: String, context: [String: Any] = [:]) throws -> String {
         try makeEnvironment().renderTemplate(name: name, context: context)
+    }
+
+    public func renderZPL(_ zpl: String, context: [String: Any] = [:]) throws -> String {
+        // Create a unique temporary template name
+        let tempName = "__tmp_" + UUID().uuidString
+
+        // Insert the raw ZPL as a template under the temporary name
+        queue.sync { archive.templates[tempName] = zpl }
+
+        // Always remove the temporary template, even if rendering throws
+        defer {
+            _ = queue.sync { archive.templates.removeValue(forKey: tempName) }
+        }
+
+        // Reuse the existing rendering pipeline so recursive includes work
+        let result = try render(name: tempName, context: context)
+        return result
     }
 }
 
