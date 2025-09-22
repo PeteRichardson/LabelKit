@@ -17,7 +17,6 @@ import Foundation
 /// is larger.
 public struct InjectLength: ZPLProcessor {
     public func process(_ input: String, env: ZPLEnvironment) throws -> String {
-        let device = env.options.device
         let ll = ZPLLengthEstimator.estimate(input)
         let newzpl: String
         if !input.contains("^LL") {
@@ -28,9 +27,13 @@ public struct InjectLength: ZPLProcessor {
                                                 options: .regularExpression)
         }
         
-        guard ll <= device.maxLengthDots else {
-            throw PrintError.lengthOverflow(requested: ll, max: device.maxLengthDots)
+        // Sanity check that calculated length isn't too long for the device
+        // TODO: Should also check Stock limits
+        let maxLengthDots = env.options.device.maxLengthDots
+        guard ll <= maxLengthDots else {
+            throw PrintError.lengthOverflow(requested: ll, max: maxLengthDots)
         }
+        
         return newzpl
     }
     public init(){}

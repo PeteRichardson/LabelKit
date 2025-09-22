@@ -15,27 +15,15 @@ enum PrintError: Error {
 }
 
 /// A ZPLProcessor that resolves Stencil templates in the raw zpl from a StencilTemplateStore
-public struct StencilZPLProcessor: ZPLProcessor {
+public struct ResolveTemplates: ZPLProcessor {
     private var templateStore : StencilTemplateStore? = nil
-    private var context: [String: Any]
     
-    public init? (context: [String: Any] = [:]) {
-        self.context = context
-        
-        do {
-            // Get Templates from Application Support/.../templates.json
-            templateStore = try StencilTemplateStore()
-            try templateStore!.load()
-        } catch {
-            print ("Error initializing StencilZPLProcessor::templateStore: \(error)")
-        }
-    }
     public func process(_ input: String, env: ZPLEnvironment) throws -> String {
         var zpl : String = ""
 
         if templateStore != nil {
             // Render the given zpl in the given context
-            zpl = try templateStore!.renderZPL(input, context: context)
+            zpl = try templateStore!.renderZPL(input, context: env.context)
         }
         
         // Ensure ^XA/^XZ
@@ -44,8 +32,16 @@ public struct StencilZPLProcessor: ZPLProcessor {
 
         return zpl
     }
-
-
+    
+    public init? () {
+        do {
+            // Get Templates from Application Support/.../templates.json
+            templateStore = try StencilTemplateStore()
+            try templateStore!.load()
+        } catch {
+            print ("Error initializing StencilZPLProcessor::templateStore: \(error)")
+        }
+    }
 }
 
 

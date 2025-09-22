@@ -24,118 +24,78 @@ private var editorFont: Font {
 
 struct ContentView: View {
     //@State private var text: String
-    @State private var label: StencilZPLLabel
+    @State private var label: ZPLLabel
+    @State private var previewImage: NSImage? = nil
     
     private static func loadSomeZPL() -> String {
-        return "{{label}}"
+        return "^XA\n^FO10,10^A0N,20,20^FDHello, World!^FS\n^XZ"
     }
     
     // New initializer lets callers pass initial text
     init(initialText: String? = nil) {
         let text = initialText ?? Self.loadSomeZPL()
-        label = StencilZPLLabel(text)
+        let zd620 = Device.Preset.ZD620
+        let stock = Stock.Preset.label2x1
+        label = ZPLLabel(
+            text,
+            processors: [InjectLength()],
+            environment: .init(options: .init(stock: stock, device: zd620))
+        )
     }
     
     private static let defaultDebounceDelay = Duration.milliseconds(800)
     
     @State private var autoRefreshTask: Task<Void, Never>? = nil
-    @State private var autoRefreshEnabled = true
-    
-    func sendZPL(label: StencilZPLLabel) {
-        do {
-            let zd620 = Device ( name:"ZD620", nativeDPI: .dpi300, maxWidthDots: 1200, maxLengthDots: 12000)
-            let stock = Stock(widthInches: 2.0, heightInches: 1.0, isContinuous: false, gapInches: 0.125)
-            let geometry = RenderGeometry(
-                dpi: zd620.nativeDPI.rawValue,
-                widthDots: stock.widthDots(at: zd620.nativeDPI),
-                heightDots: stock.heightDots(at: zd620.nativeDPI)
-            )
-            let zplopts  = ZPLOptions(geometry: geometry, stock: stock, device: zd620)
-            let zplenv = ZPLEnvironment(context: [:], options: zplopts)
-            
-            guard let processor = StencilZPLProcessor() else {
-                fatalError("Couldn't create StencilZPLProcessor")
-            }
-            
-            let finalZPL = try processor.process(label.zpl(), env: zplenv)
-            
-            let printer = NetworkTarget(device: zd620, host: "192.168.0.133", port: 9100)
-            try printer.send(Payload.zpl(finalZPL, dpi: zd620.nativeDPI))
-        } catch {
-            print("WTF \(error)")
-        }
-
-    }
+    @State private var autoRefreshEnabled = false
     
     var body: some View {
-        @Bindable var label = label
         VStack {
             HStack(alignment: .top, spacing: 12) {
-                TextEditor(text: $label.rawTemplate)
+                TextEditor(text: $label.source)
                     .environment(\.font, editorFont)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment:.topLeading)
-                TextEditor(text: .constant(label.renderedZPL))
+                TextEditor(text: .constant(label.zpl()))
                     .environment(\.font, editorFont)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .disabled(true)
-                    .overlay(alignment: .topLeading) {
-                        if let err = label.lastRenderError {
-                            Text("⚠️ \(err)").font(.caption).foregroundStyle(.red)
-                        }
-                    }
+                
+                //                    if let labelPreview  = previewImage {
+                //                        Image(nsImage: labelPreview)
+                //                            .resizable()
+                //                            .interpolation(.none)   // keeps thermal-label “crisp”
+                //                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                //                            .scaledToFit()
+                //                            .frame(maxWidth: 406, maxHeight: 203)
+                //                            .shadow(radius: 8)
+                //
+                //                    }
             }
             .frame(maxWidth: .infinity)
             HStack {
                 Spacer()
                 Button("Print", systemImage: "paperplane.circle") {
-                    Task { await label.renderNow() }
-                    sendZPL(label: label)
+                    Task {
+                        //                            let geometry = RenderGeometry(
+                        //                                dpi: label.device.nativeDPI.rawValue,
+                        //                                widthDots: label.stock.widthDots(at: label.device.nativeDPI),
+                        //                                heightDots: label.stock.heightDots(at: label.device.nativeDPI)
+                        //                            )
+                        //                            let imageOpts = ImageRenderOptions(geometry: geometry, timeout: 2.0)
+                        //                            do {
+                        //                                let png = try await LabelaryRenderer().render(from: label.zpl(), options: imageOpts)
+                        //                                await MainActor.run { previewImage = png }
+                        //                            } catch {
+                        //                                await MainActor.run { previewImage = nil }
+                        //                            }
+                    }
                 }
             }
         }
         .padding()
-        // Debounce only while auto-refresher is enabled
-        .onChange(of: label.rawTemplate) {
-            if autoRefreshEnabled {
-                scheduleAutoRefresh(delay: ContentView.defaultDebounceDelay)
-            }
-        }
-        // React to toggling
-        .onChange(of: autoRefreshEnabled) { oldValue, newValue in
-            if newValue {
-                scheduleAutoRefresh(delay: ContentView.defaultDebounceDelay)
-            } else {
-                autoRefreshTask?.cancel()
-            }
-        }
-        // Refresh once on appear if enabled
-        .task {
-            if autoRefreshEnabled {
-                Task { await label.renderNow() }
-            }
-        }
     }
-    
-    private func scheduleAutoRefresh(delay: Duration = defaultDebounceDelay) {
-        // Cancel any in-flight debounce task
-        autoRefreshTask?.cancel()
-        autoRefreshTask = Task { [label] in
-            // Debounce window; if cancelled, exit without refreshing
-            do {
-                try await Task.sleep(for: delay)
-            } catch {
-                return // cancelled during sleep
-            }
-            guard !Task.isCancelled else { return }
-            Task { @MainActor in
-                await label.renderNow() 
-            }
-        }
-    }
-    
-    
 }
 
 #Preview {
     ContentView()
 }
+

@@ -19,7 +19,10 @@ struct StencilProcessorTests {
             ^FDHello, {{ name }}!^FS
             ^XZ
             """
-        let label = ZPLLabel(source: zpl, processors: [StencilZPLProcessor(context: ctx)!])
+        let label = ZPLLabel(zpl,
+                             processors: [ResolveTemplates()!],
+                             environment: .init(context: ctx)
+        )
         let finalzpl = (try? label.zpl()) ?? "zpl() failed"
         #expect(finalzpl.contains("Hello, World!"))
     }
@@ -29,7 +32,9 @@ struct StencilProcessorTests {
         let zpl = """
             ^FDHello, World!^FS
             """
-        let label = ZPLLabel(source: zpl, processors: [StencilZPLProcessor(context: ctx)!])
+        let label = ZPLLabel(zpl,
+                             processors: [ResolveTemplates()!],
+                             environment: .init(context: ctx))
         let finalzpl = (try? label.zpl()) ?? "zpl() failed"
         #expect(finalzpl.starts(with: "^XA\n"))
         #expect(finalzpl.hasSuffix("\n^XZ"))
