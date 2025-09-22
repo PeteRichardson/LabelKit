@@ -96,18 +96,16 @@ public struct NetworkTarget: Target {
 
 public struct StdoutTarget: Target {
     public let device: Device
-    let pretty: Bool
     public func send(_ payload: Payload, strict: Bool) throws {
         switch payload {
         case .zpl(let s, _):
-            Swift.print(pretty ? ZPLFormatter.prettyPrint(s) : ZPLFormatter.minify(s))
+            Swift.print(s)
         case .png(let d, _):
             // iTerm2-safe? If not, hex dump or error:
             Swift.print("PNG \(d.count) bytes")
         }
     }
-    public init(pretty: Bool, device: Device) {
-        self.pretty = pretty
+    public init(device: Device) {
         self.device = device
     }
 }

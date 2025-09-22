@@ -21,6 +21,13 @@ public struct ZPLEnvironment {
     }
 }
 
+/// Convenience initializer requires just Stock and Device, with optional context
+public extension ZPLEnvironment {
+    init(context: [String: String] = [:], stock: Stock, device: Device) {
+        self.init(context: context, options: .init(stock: stock, device: device))
+    }
+}
+
 public struct ZPLOptions: Sendable {
     public var geometry: RenderGeometry
     public var stock: Stock

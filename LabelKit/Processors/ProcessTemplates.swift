@@ -19,6 +19,7 @@ public struct ResolveTemplates: ZPLProcessor {
     private var templateStore : StencilTemplateStore? = nil
     
     public func process(_ input: String, env: ZPLEnvironment) throws -> String {
+        // print("# Calling \(String(describing: type(of: self)))")
         var zpl : String = ""
 
         if templateStore != nil {
@@ -26,10 +27,6 @@ public struct ResolveTemplates: ZPLProcessor {
             zpl = try templateStore!.renderZPL(input, context: env.context)
         }
         
-        // Ensure ^XA/^XZ
-        if !zpl.starts(with: "\\s+^XA") { zpl = "^XA\n" + zpl }
-        if !zpl.hasSuffix("^XZ\\s") { zpl += "\n^XZ" }
-
         return zpl
     }
     
@@ -43,8 +40,6 @@ public struct ResolveTemplates: ZPLProcessor {
         }
     }
 }
-
-
 
 
 public struct RenderGeometry: Sendable {
