@@ -26,9 +26,10 @@ struct ContentView: View {
     //@State private var text: String
     @State private var label: ZPLLabel
     @State private var previewImage: NSImage? = nil
-    
+    @State private var ctx: KeyValueContext
+
     private static func loadSomeZPL() -> String {
-        return "^XA\n^FO10,10^A0N,20,20^FDHello, World!^FS\n^XZ"
+        return "^XA\n^FO10,10^A0N,20,20^FDHello, {{name}}!^FS\n^XZ"
     }
     
     // New initializer lets callers pass initial text
@@ -36,57 +37,74 @@ struct ContentView: View {
         let text = initialText ?? Self.loadSomeZPL()
         let zd620 = Device.Preset.ZD620
         let stock = Stock.Preset.label2x1
-        label = ZPLLabel(
-            text,
-            processors: [InjectLength()],
-            environment: .init(options: .init(stock: stock, device: zd620))
+
+        // Build an initial context without touching self before all properties are initialized
+        let initialCtx = KeyValueContext(["name": "Pete", "sku": "A123"])
+
+        // Initialize @State wrappers explicitly
+        self._ctx = State(initialValue: initialCtx)
+        self._label = State(initialValue:
+            ZPLLabel(
+                text,
+                processors: [InjectLength(), ResolveTemplates()!],
+                environment: .init(context: self._ctx.wrappedValue, options: .init(stock: stock, device: zd620))
+            )
         )
     }
-    
-    private static let defaultDebounceDelay = Duration.milliseconds(800)
-    
-    @State private var autoRefreshTask: Task<Void, Never>? = nil
-    @State private var autoRefreshEnabled = false
     
     var body: some View {
         VStack {
             HStack(alignment: .top, spacing: 12) {
-                TextEditor(text: $label.source)
-                    .environment(\.font, editorFont)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment:.topLeading)
+                VStack(alignment: .leading, spacing: 12) {
+                    KeyValueTableView(context: $ctx)
+                    Divider()
+                    TextEditor(text: $label.source)
+                        .environment(\.font, editorFont)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment:.topLeading)
+                    
+                }
+//                TextEditor(text: .constant(label.zpl()))
                 TextEditor(text: .constant(label.zpl()))
                     .environment(\.font, editorFont)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .disabled(true)
                 
-                //                    if let labelPreview  = previewImage {
-                //                        Image(nsImage: labelPreview)
-                //                            .resizable()
-                //                            .interpolation(.none)   // keeps thermal-label “crisp”
-                //                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                //                            .scaledToFit()
-                //                            .frame(maxWidth: 406, maxHeight: 203)
-                //                            .shadow(radius: 8)
-                //
-                //                    }
+                if let labelPreview  = previewImage {
+                    Image(nsImage: labelPreview)
+                        .resizable()
+                        .interpolation(.none)   // keeps thermal-label “crisp”
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .scaledToFit()
+                        .frame(maxWidth: 406, maxHeight: 203)
+                        .shadow(radius: 8)
+
+                }
             }
             .frame(maxWidth: .infinity)
             HStack {
                 Spacer()
-                Button("Print", systemImage: "paperplane.circle") {
+                Button("Render", systemImage: "paperplane.circle") {
                     Task {
-                        //                            let geometry = RenderGeometry(
-                        //                                dpi: label.device.nativeDPI.rawValue,
-                        //                                widthDots: label.stock.widthDots(at: label.device.nativeDPI),
-                        //                                heightDots: label.stock.heightDots(at: label.device.nativeDPI)
-                        //                            )
-                        //                            let imageOpts = ImageRenderOptions(geometry: geometry, timeout: 2.0)
-                        //                            do {
-                        //                                let png = try await LabelaryRenderer().render(from: label.zpl(), options: imageOpts)
-                        //                                await MainActor.run { previewImage = png }
-                        //                            } catch {
-                        //                                await MainActor.run { previewImage = nil }
-                        //                            }
+                        let dpi = Device.Preset.ZD620.nativeDPI
+                        let geometry = RenderGeometry(
+//                            dpi: label.device.nativeDPI.rawValue,
+//                            widthDots: label.stock.widthDots(at: label.device.nativeDPI),
+//                            heightDots: label.stock.heightDots(at: label.device.nativeDPI)
+                            dpi: dpi.rawValue,
+                            widthDots: Stock.Preset.label2x1.widthDots(at: dpi),
+                            heightDots: Stock.Preset.label2x1.heightDots(at: dpi)
+                        )
+                        let imageOpts = ImageRenderOptions(geometry: geometry, timeout: 2.0)
+                        do {
+                            let imageData = try await LabelaryRenderer().render(from: label.zpl(), options: imageOpts)
+                            if let nsImage = NSImage(data: imageData) {
+                                print("Got image data!")
+                                await MainActor.run { previewImage = nsImage }
+                            }
+                        } catch {
+                            print("Didn't get image data!")
+                            await MainActor.run { previewImage = nil }
+                        }
                     }
                 }
             }

@@ -23,6 +23,7 @@ public struct ZPLLabel: ZPLRepresentable, Observable {
     }
     
     public func zpl() -> String {
+//      print("calling zpl(): source: \(source), processors: \(processors),  enivronment.context: \(environment.context)")
         do {
             return try processors.reduce(source) { acc, p in
                 try p.process(acc, env: environment)

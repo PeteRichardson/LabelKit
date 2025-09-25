@@ -25,7 +25,7 @@ let zd620 = Device.Preset.ZD620
 let zplenv = ZPLEnvironment(stock: stock, device: zd620)
 let label: ZPLLabel = ZPLLabel(
     zpl,
-    processors: [ResolveTemplates()!, InjectLength(), PrettyPrint()],
+    processors: [ResolveTemplates()!,  InjectLength(), PrettyPrint()],
     environment: zplenv
 )
 

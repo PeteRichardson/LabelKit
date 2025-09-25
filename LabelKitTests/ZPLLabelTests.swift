@@ -17,10 +17,10 @@ struct ZPLLabelTests {
         let template = "^XA\n^FO0,0^FDHello {{ name }}^FS\n^XZ"
         let label = ZPLLabel(template,
                              processors: [ResolveTemplates()!],
-                             environment: .init(context: ["name": "World"]))
+                             environment: .init(context: KeyValueContext(["name": "World"])))
 
         // Then: the renderedZPL should contain the interpolated value
-        let out = try label.zpl()
+        let out = label.zpl()
         #expect(out.contains("Hello World"))
     }
 
@@ -28,17 +28,17 @@ struct ZPLLabelTests {
     func updateTemplateThenRender() async throws {
         var label = ZPLLabel("^XA\n^FO0,0^FDHi {{ who }}^FS\n^XZ",
                              processors: [ResolveTemplates()!],
-                             environment: .init(context: ["who": "Alice"])
+                             environment: .init(context: KeyValueContext(["who": "Alice"]))
         )
 
-        var out = try label.zpl()
+        var out = label.zpl()
         #expect(out.contains("Hi Alice"))
 
         // Change template and context; debouncer will schedule but we force immediate render
         label.source = "^XA\n^FO0,0^FDBye {{ who }}^FS\n^XZ"
-        label.environment.context.updateValue("Bob", forKey:"who")
+        label.environment.context = KeyValueContext(["who": "Bob"])
 
-        out = try label.zpl()
+        out = label.zpl()
         #expect(out.contains("Bye Bob"))
     }
 
@@ -47,12 +47,13 @@ struct ZPLLabelTests {
     func setContextValueAffectsRender() async throws {
         var label = ZPLLabel("^XA\n^FO0,0^FDItem: {{ item }}^FS\n^XZ",
                              processors: [ResolveTemplates()!],
-                             environment: .init(context: ["item": "A"]))
-        var out = try label.zpl()
+                             environment: .init(context: KeyValueContext(["item": "A"])))
+        var out = label.zpl()
         #expect(out.contains("Item: A"))
 
-        label.environment.context.updateValue("B", forKey: "item")
-        out = try label.zpl()
+        label.environment.context = KeyValueContext(["item": "B"])
+        out = label.zpl()
         #expect(out.contains("Item: B"))
     }
 }
+

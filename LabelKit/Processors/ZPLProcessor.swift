@@ -13,9 +13,9 @@ public protocol ZPLProcessor {
 
 
 public struct ZPLEnvironment {
-    public var context: [String: String]        // stencil/vars/etc
+    public var context: KeyValueContext        // stencil/vars/etc
     public var options: ZPLOptions              // DPI, width, etc (extend as needed)
-    public init(context: [String: String] = [:], options: ZPLOptions = .default) {
+    public init(context: KeyValueContext = KeyValueContext([:]), options: ZPLOptions = .default) {
         self.context = context
         self.options = options
     }
@@ -23,7 +23,11 @@ public struct ZPLEnvironment {
 
 /// Convenience initializer requires just Stock and Device, with optional context
 public extension ZPLEnvironment {
-    init(context: [String: String] = [:], stock: Stock, device: Device) {
+    init(
+        context: KeyValueContext = KeyValueContext([:]),
+        stock: Stock,
+        device: Device
+    ) {
         self.init(context: context, options: .init(stock: stock, device: device))
     }
 }

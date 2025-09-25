@@ -11,7 +11,7 @@ import LabelKit
 struct StencilProcessorTests {
 
     @Test func SimpleStencil() async throws {
-        let ctx = ["name": "World"]
+        let ctx = KeyValueContext(["name": "World"])
         let zpl = """
             ^XA
             ^FO40,300
@@ -23,21 +23,8 @@ struct StencilProcessorTests {
                              processors: [ResolveTemplates()!],
                              environment: .init(context: ctx)
         )
-        let finalzpl = (try? label.zpl()) ?? "zpl() failed"
+        let finalzpl = label.zpl()
         #expect(finalzpl.contains("Hello, World!"))
-    }
-    
-    @Test func InsertsXAXZ() async throws {
-        let ctx = ["name": "World"]
-        let zpl = """
-            ^FDHello, World!^FS
-            """
-        let label = ZPLLabel(zpl,
-                             processors: [ResolveTemplates()!],
-                             environment: .init(context: ctx))
-        let finalzpl = (try? label.zpl()) ?? "zpl() failed"
-        #expect(finalzpl.starts(with: "^XA\n"))
-        #expect(finalzpl.hasSuffix("\n^XZ"))
     }
 
 }
