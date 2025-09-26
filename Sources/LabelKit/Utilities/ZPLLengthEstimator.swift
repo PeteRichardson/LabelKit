@@ -18,8 +18,8 @@ import Foundation
 ///
 /// Consider using the static estimateLengthDots(_ zpl:) convenience function
 
-public struct ZPLLengthEstimator {
-    public struct Config {
+public struct ZPLLengthEstimator: Sendable {
+    public struct Config: Sendable {
         public var defaultFontHeight: Int
         public var defaultLineGap: Int
         public var defaultBarcodeHeight: Int

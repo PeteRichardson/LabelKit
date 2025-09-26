@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Network
+@preconcurrency import Network
 
 public enum Payload {
     case zpl(String, dpi: DPI)      // carry the render DPI with the ZPL
@@ -37,53 +37,45 @@ public struct NetworkTarget: Target {
                 throw PrintError.dpiMismatch(render: dpi, device: device.nativeDPI)
             }
             // If not strict, you *could* still send, but it will look wrong.
-            try sendRaw(Data(zpl.utf8))
+            sendRaw(Data(zpl.utf8))
         case let .png(data, dpi):
             // Usually you don't send PNGs to a ZPL device; same check applies if you ever did.
             if strict && dpi != device.nativeDPI {
                 throw PrintError.dpiMismatch(render: dpi, device: device.nativeDPI)
             }
-            try sendRaw(data)
+            sendRaw(data)
         }
     }
 
-    public func sendRaw(_ data: Data) throws {
-         Task {
-            do {
-                let conn = NWConnection(
-                    host: NWEndpoint.Host(host),
-                    port: NWEndpoint.Port(rawValue: port)!,
-                    using: .tcp
-                )
-                try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-                    conn.stateUpdateHandler = { state in
-                        switch state {
-                        case .ready:
-                            conn.send(
-                                content: data,
-                                completion: .contentProcessed { sendError in
-                                    if let sendError = sendError {
-                                        conn.cancel()
-                                        cont.resume(throwing: sendError)
-                                    } else {
-                                        conn.cancel()
-                                        cont.resume(returning: ())
-                                    }
-                                }
-                            )
-                        case .failed(let error):
+    public func sendRaw(_ data: Data) {
+        let host = self.host
+        let port = self.port
+        Task.detached {
+            let conn = NWConnection(
+                host: NWEndpoint.Host(host),
+                port: NWEndpoint.Port(rawValue: port)!,
+                using: .tcp
+            )
+            conn.stateUpdateHandler = { state in
+                switch state {
+                case .ready:
+                    conn.send(
+                        content: data,
+                        completion: .contentProcessed { sendError in
+                            if let sendError = sendError {
+                                print("Send error: \(sendError)")
+                            }
                             conn.cancel()
-                            cont.resume(throwing: error)
-                        default:
-                            break
                         }
-                    }
-                    conn.start(queue: .global())
+                    )
+                case .failed(let error):
+                    print("Connection failed: \(error)")
+                    conn.cancel()
+                default:
+                    break
                 }
-
-            } catch {
-                print("Error: \(error)")
             }
+            conn.start(queue: .global())
         }
     }
     
