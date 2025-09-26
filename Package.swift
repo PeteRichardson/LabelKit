@@ -5,7 +5,8 @@ let package = Package(
     name: "LabelKit",
     platforms: [.macOS(.v14)],
     products: [
-        .library(name: "LabelKit", targets: ["LabelKit"])
+        .library(name: "LabelKit", targets: ["LabelKit"]),
+        .executable(name: "example-label", targets: ["LabelCLI"])
     ],
     dependencies: [
         .package(url: "https://github.com/stencilproject/Stencil.git", from: "0.15.1")
@@ -20,5 +21,10 @@ let package = Package(
                 .copy("Helpers/zpl2png")
             ]),
         .testTarget(name: "LabelKitTests", dependencies: ["LabelKit"]),
+        .executableTarget(
+            name: "LabelCLI",
+            dependencies: ["LabelKit"],
+            path: "Examples/LabelCLI"
+        )
     ]
 )
