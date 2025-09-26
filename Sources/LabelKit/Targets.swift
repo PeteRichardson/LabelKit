@@ -22,7 +22,7 @@ public enum Payload {
 /// You are sending the same data to two different Targets.
 public protocol Target {
     var device: Device { get }
-    func send(_ payload: Payload, strict: Bool) throws
+    func send(_ payload: Payload, strict: Bool) async throws
 }
 
 public struct NetworkTarget: Target {
@@ -30,53 +30,73 @@ public struct NetworkTarget: Target {
     private let host: String
     private let port: UInt16
 
-    public func send(_ payload: Payload, strict: Bool = true) throws {
+    public func send(_ payload: Payload, strict: Bool = true) async throws {
         switch payload {
         case let .zpl(zpl, dpi):
             if strict && dpi != device.nativeDPI {
                 throw PrintError.dpiMismatch(render: dpi, device: device.nativeDPI)
             }
             // If not strict, you *could* still send, but it will look wrong.
-            sendRaw(Data(zpl.utf8))
+            try await sendRaw(Data(zpl.utf8))
         case let .png(data, dpi):
             // Usually you don't send PNGs to a ZPL device; same check applies if you ever did.
             if strict && dpi != device.nativeDPI {
                 throw PrintError.dpiMismatch(render: dpi, device: device.nativeDPI)
             }
-            sendRaw(data)
+            try await sendRaw(data)
         }
     }
 
-    public func sendRaw(_ data: Data) {
+    public func sendRaw(_ data: Data) async throws {
         let host = self.host
         let port = self.port
-        Task.detached {
-            let conn = NWConnection(
-                host: NWEndpoint.Host(host),
-                port: NWEndpoint.Port(rawValue: port)!,
-                using: .tcp
-            )
+
+        enum NetworkSendError: Error { case invalidPort }
+        guard let nwPort = NWEndpoint.Port(rawValue: port) else { throw NetworkSendError.invalidPort }
+
+        let conn = NWConnection(
+            host: NWEndpoint.Host(host),
+            port: nwPort,
+            using: .tcp
+        )
+
+        // Await connection readiness or failure
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
             conn.stateUpdateHandler = { state in
                 switch state {
                 case .ready:
-                    conn.send(
-                        content: data,
-                        completion: .contentProcessed { sendError in
-                            if let sendError = sendError {
-                                print("Send error: \(sendError)")
-                            }
-                            conn.cancel()
-                        }
-                    )
+                    conn.stateUpdateHandler = nil
+                    cont.resume(returning: ())
                 case .failed(let error):
-                    print("Connection failed: \(error)")
-                    conn.cancel()
+                    conn.stateUpdateHandler = nil
+                    cont.resume(throwing: error)
                 default:
                     break
                 }
             }
             conn.start(queue: .global())
         }
+
+        // Send data and await completion
+        do {
+            try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+                conn.send(
+                    content: data,
+                    completion: .contentProcessed { sendError in
+                        if let sendError = sendError {
+                            cont.resume(throwing: sendError)
+                        } else {
+                            cont.resume(returning: ())
+                        }
+                    }
+                )
+            }
+        } catch {
+            conn.cancel()
+            throw error
+        }
+
+        conn.cancel()
     }
     
     public init(device: Device, host: String, port: UInt16) {
@@ -88,7 +108,7 @@ public struct NetworkTarget: Target {
 
 public struct StdoutTarget: Target {
     public let device: Device
-    public func send(_ payload: Payload, strict: Bool) throws {
+    public func send(_ payload: Payload, strict: Bool = true) async throws {
         switch payload {
         case .zpl(let s, _):
             Swift.print(s)
@@ -104,7 +124,7 @@ public struct StdoutTarget: Target {
 
 public struct ITerm2Target: Target {
     public let device: Device
-    public func send(_ payload: Payload, strict: Bool) throws {
+    public func send(_ payload: Payload, strict: Bool = true) async throws {
         guard case .png(let data, _) = payload else { return }
         let b64 = data.base64EncodedString()
         Swift.print("\u{1b}]1337;File=inline=1;width=auto;height=auto;preserveAspectRatio=1:\(b64)\u{07}")
@@ -117,7 +137,7 @@ public struct ITerm2Target: Target {
 public struct FileTarget: Target {
     public let device: Device
     let url: URL
-    public func send(_ payload: Payload, strict: Bool) throws {
+    public func send(_ payload: Payload, strict: Bool = true) async throws {
         switch payload {
         case .zpl(let s, _): try s.write(to: url, atomically: true, encoding: .utf8)
         case .png(let data, _): try data.write(to: url)
