@@ -42,7 +42,7 @@ public struct ZPL2PNGRenderer: ImageRenderer {
         args += ["--height-mm", String(heightMM)]
         args += ["--dpmm", String(Int(round(Double(options.geometry.dpi)/25.4)))]
         p.arguments = args
-        print(args)
+        //print(args)
 
         let inPipe = Pipe(), outPipe = Pipe(), errPipe = Pipe()
         p.standardInput = inPipe; p.standardOutput = outPipe; p.standardError = errPipe

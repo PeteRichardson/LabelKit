@@ -29,7 +29,7 @@ public struct LabelaryRenderer: ImageRenderer {
         "https://api.labelary.com/v1/printers/\(dpmm)dpmm/labels/\(sizeComponent)/0/"
         guard let url = URL(string: urlString) else { throw LabelaryError.badURL }
         
-        print("urlstring: \(urlString)")
+        //print("urlstring: \(urlString)")
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
