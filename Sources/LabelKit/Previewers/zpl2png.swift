@@ -5,7 +5,7 @@
 //  Created by Peter Richardson on 9/2/25.
 //
 
-import AppKit
+import Foundation
 
 enum PreviewError: Error {
     case helperNotFound
@@ -16,7 +16,38 @@ enum PreviewError: Error {
 
 // MARK: - zpl2png (local helper in Contents/Helpers)
 
+func lookupInPath(named name: String) -> URL? {
+    let fm = FileManager.default
+    guard let pathEnv = ProcessInfo.processInfo.environment["PATH"] else { return nil }
+    for dir in pathEnv.split(separator: ":") {
+        let candidate = URL(fileURLWithPath: String(dir)).appendingPathComponent(name)
+        if fm.isExecutableFile(atPath: candidate.path) {
+            return candidate
+        }
+    }
+    return nil
+}
+
+
 public struct ZPL2PNGRenderer: ImageRenderer {
+    public init() throws {
+        guard let url = lookupInPath(named: "zpl2png") else {
+            throw PreviewError.helperNotFound
+        }
+        self.helperURL = url
+    }
+
+    public init(helperName: String) throws {
+        guard let url = lookupInPath(named: helperName) else {
+            throw PreviewError.helperNotFound
+        }
+        self.helperURL = url
+    }
+    
+    public init(helperURL: URL) {
+        self.helperURL = helperURL
+    }
+
     let helperURL: URL
     public func render(from zpl: String, options: ImageRenderOptions) async throws -> Data {
         try await withCheckedThrowingContinuation { cont in
@@ -65,7 +96,5 @@ public struct ZPL2PNGRenderer: ImageRenderer {
         }
         return data
     }
-    public init(helperURL: URL) {
-        self.helperURL = helperURL
-    }
+
 }

@@ -37,7 +37,7 @@ public struct NetworkTarget: Target {
                 throw PrintError.dpiMismatch(render: dpi, device: device.nativeDPI)
             }
             // If not strict, you *could* still send, but it will look wrong.
-            try await sendRaw(Data(zpl.utf8))
+            try await sendRaw(Data(zpl.utf8), timeout: 3)
         case let .png(data, dpi):
             // Usually you don't send PNGs to a ZPL device; same check applies if you ever did.
             if strict && dpi != device.nativeDPI {
@@ -47,11 +47,11 @@ public struct NetworkTarget: Target {
         }
     }
 
-    public func sendRaw(_ data: Data) async throws {
+    public func sendRaw(_ data: Data, timeout seconds: Double = 10) async throws {
         let host = self.host
         let port = self.port
 
-        enum NetworkSendError: Error { case invalidPort }
+        enum NetworkSendError: Error { case invalidPort, timeout, cancelled }
         guard let nwPort = NWEndpoint.Port(rawValue: port) else { throw NetworkSendError.invalidPort }
 
         let conn = NWConnection(
@@ -60,21 +60,41 @@ public struct NetworkTarget: Target {
             using: .tcp
         )
 
-        // Await connection readiness or failure
-        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-            conn.stateUpdateHandler = { state in
-                switch state {
-                case .ready:
-                    conn.stateUpdateHandler = nil
-                    cont.resume(returning: ())
-                case .failed(let error):
-                    conn.stateUpdateHandler = nil
-                    cont.resume(throwing: error)
-                default:
-                    break
+        // Await connection readiness or failure, with timeout
+        do {
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                group.addTask {
+                    try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+                        conn.stateUpdateHandler = { state in
+                            switch state {
+                            case .ready:
+                                conn.stateUpdateHandler = nil
+                                cont.resume(returning: ())
+                            case .failed(let error):
+                                conn.stateUpdateHandler = nil
+                                cont.resume(throwing: error)
+                            case .cancelled:
+                                conn.stateUpdateHandler = nil
+                                cont.resume(throwing: NetworkSendError.cancelled)
+                            default:
+                                break
+                            }
+                        }
+                        conn.start(queue: .global(qos: .userInitiated))
+                    }
                 }
+                group.addTask {
+                    try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+                    throw NetworkSendError.timeout
+                }
+
+                // First finished wins
+                _ = try await group.next()
+                group.cancelAll()
             }
-            conn.start(queue: .global())
+        } catch {
+            conn.cancel()
+            throw error
         }
 
         // Send data and await completion

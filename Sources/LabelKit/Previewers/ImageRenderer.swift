@@ -8,6 +8,7 @@ import Foundation
 
 public protocol ImageRenderer: Sendable {
     func render(from zpl: String, options: ImageRenderOptions) async throws -> Data
+    init() throws
 }
 
 
