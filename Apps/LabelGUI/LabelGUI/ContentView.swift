@@ -20,8 +20,6 @@ private var editorFont: Font {
     }
 }
 
-
-
 struct ContentView: View {
     //@State private var text: String
     @State private var label: ZPLLabel
