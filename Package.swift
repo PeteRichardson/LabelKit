@@ -6,10 +6,18 @@ let package = Package(
     platforms: [.macOS(.v14)],
     products: [
         .library(name: "LabelKit", targets: ["LabelKit"]),
-        .executable(name: "example-label", targets: ["LabelCLI"])
+        .executable(name: "example-label", targets: ["LabelCLI"]),
+        .executable(name: "example-reminderlist", targets: ["ReminderList"])
     ],
     dependencies: [
-        .package(url: "https://github.com/stencilproject/Stencil.git", from: "0.15.1")
+        .package(
+            url: "https://github.com/stencilproject/Stencil.git",
+            from: "0.15.1"
+        ),
+        .package(
+            url: "https://github.com/apple/swift-argument-parser.git",
+            from: "1.3.0"
+        )
     ],
     targets: [
         .target(
@@ -25,6 +33,14 @@ let package = Package(
             name: "LabelCLI",
             dependencies: ["LabelKit"],
             path: "Examples/LabelCLI"
+        ),
+        .executableTarget(
+            name: "ReminderList",
+            dependencies: [
+                "LabelKit"
+            ],
+            path: "Examples/ReminderList",
+            sources: ["ReminderList.swift", "Reminders.swift"]
         )
     ]
 )
