@@ -6,7 +6,7 @@
 //
 
 import Foundation
-
+import Security
 enum PreviewError: Error {
     case helperNotFound
     case cannotLaunch(String)
@@ -14,6 +14,13 @@ enum PreviewError: Error {
     case badImageData
 }
 
+func isSandboxed() -> Bool {
+    guard let task = SecTaskCreateFromSelf(nil) else { return false }
+    if let value = SecTaskCopyValueForEntitlement(task, "com.apple.security.app-sandbox" as CFString, nil) {
+        return (value as? Bool) == true
+    }
+    return false
+}
 // MARK: - zpl2png (local helper in Contents/Helpers)
 
 func lookupInPath(named name: String) -> URL? {
@@ -28,27 +35,40 @@ func lookupInPath(named name: String) -> URL? {
     return nil
 }
 
+public enum LabelKitResources {
+    public static func zpl2pngURL() -> URL? {
+        Bundle.module.url(forResource: "zpl2png", withExtension: nil)
+    }
+}
+
 
 public struct ZPL2PNGRenderer: ImageRenderer {
-    public init() throws {
-        guard let url = lookupInPath(named: "zpl2png") else {
-            throw PreviewError.helperNotFound
-        }
-        self.helperURL = url
-    }
-
-    public init(helperName: String) throws {
-        guard let url = lookupInPath(named: helperName) else {
-            throw PreviewError.helperNotFound
-        }
-        self.helperURL = url
-    }
     
-    public init(helperURL: URL) {
-        self.helperURL = helperURL
+    var helperURL: URL
+    
+    public init() throws {
+        if isSandboxed() {
+            guard let url = LabelKitResources.zpl2pngURL() else {
+                throw NSError(domain: "Engine", code: 1, userInfo: [NSLocalizedDescriptionKey:
+                    "zpl2png not found in Contents/Helpers"])
+            }
+            self.helperURL = url
+        } else {
+            let candidates: [URL?] = [
+                Bundle.main.url(forAuxiliaryExecutable: "zpl2png"),
+                URL(fileURLWithPath: "/Users/pete/bin/zpl2png"),
+                URL(fileURLWithPath: "/usr/local/bin/zpl2png")
+            ]
+            for url in candidates.compactMap({ $0 }) {
+                if FileManager.default.isExecutableFile(atPath: url.path) {
+                    self.helperURL = url
+                }
+            }
+            throw NSError(domain: "Engine", code: 2, userInfo: [NSLocalizedDescriptionKey:
+                "zpl2png not found in bundle or common system paths"])
+        }
     }
 
-    let helperURL: URL
     public func render(from zpl: String, options: ImageRenderOptions) async throws -> Data {
         try await withCheckedThrowingContinuation { cont in
             Task.detached {

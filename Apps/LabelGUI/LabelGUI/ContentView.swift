@@ -100,13 +100,16 @@ struct ContentView: View {
                         )
                         let imageOpts = ImageRenderOptions(geometry: geometry, timeout: 2.0)
                         do {
-                            let imageData = try await LabelaryRenderer().render(from: label.zpl(), options: imageOpts)
+                            let imageData = try await ZPL2PNGRenderer().render(
+                                from: label.zpl(),
+                                options: imageOpts
+                            )
                             if let nsImage = NSImage(data: imageData) {
                                 print("Got image data!")
                                 await MainActor.run { previewImage = nsImage }
                             }
                         } catch {
-                            print("Didn't get image data!")
+                            print("Didn't get image data! \(error)")
                             await MainActor.run { previewImage = nil }
                         }
                     }
