@@ -50,6 +50,12 @@ struct ContentView: View {
         )
     }
     
+    func printToPrinter() async throws {
+        let zd620 = label.environment.options.device
+        let printer = NetworkTarget(device: zd620, host: "192.168.0.133", port: 9100)
+        try await printer.send(Payload.zpl(label.zpl(), dpi: zd620.nativeDPI))
+    }
+    
     var body: some View {
         VStack {
             HStack(alignment: .top, spacing: 12) {
@@ -103,6 +109,11 @@ struct ContentView: View {
                             print("Didn't get image data!")
                             await MainActor.run { previewImage = nil }
                         }
+                    }
+                }
+                Button("Print", systemImage: "printer.fill") {
+                    Task {
+                        try await printToPrinter()
                     }
                 }
             }
