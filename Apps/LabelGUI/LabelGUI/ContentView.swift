@@ -73,21 +73,25 @@ struct ContentView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment:.topLeading)
                     
                 }
-//                TextEditor(text: .constant(label.zpl()))
-                TextEditor(text: .constant(label.zpl()))
-                    .environment(\.font, editorFont)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .disabled(true)
-                
-                if let labelPreview  = previewImage {
-                    Image(nsImage: labelPreview)
-                        .resizable()
-                        .interpolation(.none)   // keeps thermal-label “crisp”
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                        .scaledToFit()
-                        .frame(maxWidth: 406, maxHeight: 203)
-                        .shadow(radius: 8)
-
+                VStack {
+                    
+                    if let labelPreview  = previewImage {
+                        Image(nsImage: labelPreview)
+                            .resizable()
+                            .interpolation(.none)   // keeps thermal-label “crisp”
+                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            .scaledToFit()
+                            .frame(maxWidth: CGFloat(label.environment.options.geometry.widthDots!), maxHeight: CGFloat(label.environment.options.geometry.heightDots!))
+                            .shadow(radius: 8)
+                    }
+                    else {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous).frame(maxWidth: 406, maxHeight: 203)
+                    }
+                    TextEditor(text: .constant(label.zpl()))
+                        .environment(\.font, editorFont)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        .disabled(true)
+                    
                 }
             }
             .frame(maxWidth: .infinity)
