@@ -27,7 +27,12 @@ struct ContentView: View {
     @State private var ctx: KeyValueContext
 
     private static func loadSomeZPL() -> String {
-        return "^XA\n^FO10,10^A0N,20,20^FDHello, {{name}}!^FS\n^XZ"
+        return """
+        ^XA\n^LL{{length}}^FO10,10\n^A0N,40,80\n^FB600,7,0,L,0\n^FDHey, {{name}}!
+        Have you heard about updog?
+        Whats updog?
+        Not much! What's up with you?^FS\n^XZ
+        """
     }
     
     // New initializer lets callers pass initial text
@@ -37,7 +42,8 @@ struct ContentView: View {
         let stock = Stock.Preset.label2x1
 
         // Build an initial context without touching self before all properties are initialized
-        let initialCtx = KeyValueContext(["name": "Pete", "sku": "A123"])
+        let initialCtx = KeyValueContext(["name": "Pete",
+                                          "length": "400"])
 
         // Initialize @State wrappers explicitly
         self._ctx = State(initialValue: initialCtx)
