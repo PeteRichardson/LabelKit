@@ -99,18 +99,17 @@ struct ContentView: View {
                 Spacer()
                 Button("Render", systemImage: "paperplane.circle") {
                     Task {
-                        let dpi = Device.Preset.ZD620.nativeDPI
+                        let device = $label.wrappedValue.environment.options.device
+                        let stock = $label.wrappedValue.environment.options.stock
                         let geometry = RenderGeometry(
-//                            dpi: label.device.nativeDPI.rawValue,
-//                            widthDots: label.stock.widthDots(at: label.device.nativeDPI),
-//                            heightDots: label.stock.heightDots(at: label.device.nativeDPI)
-                            dpi: dpi.rawValue,
-                            widthDots: Stock.Preset.label2x1.widthDots(at: dpi),
-                            heightDots: Stock.Preset.label2x1.heightDots(at: dpi)
+                            dpi: device.nativeDPI.rawValue,
+                            widthDots: stock.widthDots(at: device.nativeDPI),
+                            heightDots: stock.heightDots(at: device.nativeDPI)
                         )
                         let imageOpts = ImageRenderOptions(geometry: geometry, timeout: 2.0)
                         do {
-                            let imageData = try await ZPL2PNGRenderer().render(
+                            let imageData = try await LabelaryRenderer().render(
+//                            let imageData = try await ZPL2PNGRenderer().render(
                                 from: label.zpl(),
                                 options: imageOpts
                             )
