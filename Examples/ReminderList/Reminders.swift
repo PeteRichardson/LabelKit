@@ -9,7 +9,7 @@ import Foundation
 
 /// EKReminder is not Sendable, so create a subset that includes
 /// what we need, and is Sendable
-public struct ReminderSummary: Sendable, Equatable {
+public struct ReminderSummary: Sendable, Equatable, Decodable {
     public let title: String
     public let priority: Int
     public let dueDate: Date?

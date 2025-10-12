@@ -53,6 +53,7 @@ public struct ZPL2PNGRenderer: ImageRenderer {
                     "zpl2png not found in Contents/Helpers"])
             }
             self.helperURL = url
+            return
         } else {
             let candidates: [URL?] = [
                 Bundle.main.url(forAuxiliaryExecutable: "zpl2png"),
@@ -62,6 +63,8 @@ public struct ZPL2PNGRenderer: ImageRenderer {
             for url in candidates.compactMap({ $0 }) {
                 if FileManager.default.isExecutableFile(atPath: url.path) {
                     self.helperURL = url
+                    return
+                    
                 }
             }
             throw NSError(domain: "Engine", code: 2, userInfo: [NSLocalizedDescriptionKey:

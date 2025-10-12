@@ -37,7 +37,8 @@ let package = Package(
         .executableTarget(
             name: "ReminderList",
             dependencies: [
-                "LabelKit"
+                "LabelKit",
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             path: "Examples/ReminderList",
             sources: ["ReminderList.swift", "Reminders.swift"]
