@@ -16,7 +16,9 @@ enum PreviewError: Error {
 
 func isSandboxed() -> Bool {
     guard let task = SecTaskCreateFromSelf(nil) else { return false }
+    // defer { CFRelease(task) }
     if let value = SecTaskCopyValueForEntitlement(task, "com.apple.security.app-sandbox" as CFString, nil) {
+        // defer { CFRelease(value) }
         return (value as? Bool) == true
     }
     return false
@@ -50,31 +52,29 @@ public struct ZPL2PNGRenderer: ImageRenderer {
         if isSandboxed() {
             guard let url = LabelKitResources.zpl2pngURL() else {
                 throw NSError(domain: "Engine", code: 1, userInfo: [NSLocalizedDescriptionKey:
-                    "zpl2png not found in Contents/Helpers"])
+                                                                        "zpl2png not found in Contents/Helpers"])
             }
             self.helperURL = url
-            return
         } else {
             let candidates: [URL?] = [
                 Bundle.main.url(forAuxiliaryExecutable: "zpl2png"),
                 URL(fileURLWithPath: "/Users/pete/bin/zpl2png"),
                 URL(fileURLWithPath: "/usr/local/bin/zpl2png")
             ]
-            for url in candidates.compactMap({ $0 }) {
-                if FileManager.default.isExecutableFile(atPath: url.path) {
-                    self.helperURL = url
-                    return
-                    
-                }
+            if let url = candidates.compactMap({ $0 }).first(where: {
+                FileManager.default.isExecutableFile(atPath: $0.path) }) {
+                self.helperURL = url
+            } else {
+                throw NSError(domain: "Engine", code: 2,
+                              userInfo: [NSLocalizedDescriptionKey:
+                                            "zpl2png not found in bundle or common system paths"])
             }
-            throw NSError(domain: "Engine", code: 2, userInfo: [NSLocalizedDescriptionKey:
-                "zpl2png not found in bundle or common system paths"])
         }
     }
-
+    
     public func render(from zpl: String, options: ImageRenderOptions) async throws -> Data {
-        try await withCheckedThrowingContinuation { cont in
-            Task.detached {
+        return try await withCheckedThrowingContinuation { cont in
+            Task {
                 do {
                     let data = try runHelper(helperURL: helperURL, zpl: zpl, options: options)
                     cont.resume(returning: data)
@@ -84,7 +84,7 @@ public struct ZPL2PNGRenderer: ImageRenderer {
             }
         }
     }
-
+    
     private func runHelper(helperURL: URL, zpl: String, options: ImageRenderOptions) throws -> Data {
         let p = Process()
         p.executableURL = helperURL
@@ -97,21 +97,29 @@ public struct ZPL2PNGRenderer: ImageRenderer {
         args += ["--dpmm", String(Int(round(Double(options.geometry.dpi)/25.4)))]
         p.arguments = args
         //print(args)
-
+        
         let inPipe = Pipe(), outPipe = Pipe(), errPipe = Pipe()
         p.standardInput = inPipe; p.standardOutput = outPipe; p.standardError = errPipe
-
+        
         try p.run()
-        inPipe.fileHandleForWriting.write(Data(zpl.utf8))
-        try? inPipe.fileHandleForWriting.close()
-
+        
+        do {
+            inPipe.fileHandleForWriting.write(Data(zpl.utf8))
+            try? inPipe.fileHandleForWriting.close()
+        }
+        catch {
+            throw NSError(
+                domain: "ZPL2PNG",
+                code: 3,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to write ZPL data: \(error.localizedDescription)"]
+            )}
         // crude timeout; polish as needed
         let deadline = Date().addingTimeInterval(options.timeout)
         while p.isRunning, Date() < deadline {
             RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.01))
         }
         if p.isRunning { p.terminate() }
-
+        
         let data = outPipe.fileHandleForReading.readDataToEndOfFile()
         if p.terminationStatus != 0 || data.isEmpty {
             let err = String(data: errPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
@@ -119,5 +127,5 @@ public struct ZPL2PNGRenderer: ImageRenderer {
         }
         return data
     }
-
+    
 }
