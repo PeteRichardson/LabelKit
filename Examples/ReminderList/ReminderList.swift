@@ -14,7 +14,7 @@ public func generate_label(reminders: [ReminderSummary]) -> ZPLLabel {
     let lineHeight = fontSize + gap
 
     let topMargin = 20          // space before first line
-    let bottomMargin = 350      // empirically needed for ZD620 + cutter @ 300 dpi
+    let bottomMargin = 318      // empirically needed for ZD620 + cutter @ 300 dpi
 
     var y = topMargin
 
