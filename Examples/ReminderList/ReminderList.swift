@@ -9,23 +9,34 @@ import LabelKit
 import ArgumentParser
 
 public func generate_label(reminders: [ReminderSummary]) -> ZPLLabel {
-    let fontsize = 50
+    let fontSize = 50
     let gap = 20
-    var i = 0
-    let todoitems = reminders
-        .map {
-            i = i + fontsize + gap
-            return "^A0N,\(fontsize),\(fontsize)^FO80,\(i)^FD\($0.title)^FS"
+    let lineHeight = fontSize + gap
+
+    let topMargin = 20          // space before first line
+    let bottomMargin = 350      // empirically needed for ZD620 + cutter @ 300 dpi
+
+    var y = topMargin
+
+    let todoItems = reminders
+        .map { reminder -> String in
+            y += lineHeight
+            return "^A0N,\(fontSize),\(fontSize)^FO80,\(y)^FD\(reminder.title)^FS"
         }
         .joined(separator: "\n")
-    
-    let length = reminders.count * (fontsize + gap) + 100
-    
-    let zpl = "^XA^LL\(length)\(todoitems)^XZ"
-    
-    var zplenv = ZPLEnvironment(stock: Stock.Preset.label4x, device: Device.Preset.ZD620)
+
+    // y now holds the baseline of the last line
+    let length = y + bottomMargin   // label length in dots
+
+    let header = "^PW1200^LH0,0^LS0"
+
+    let zpl = "^XA\(header)^LL\(length)\(todoItems)^XZ"
+
+    var zplenv = ZPLEnvironment(stock: Stock.Preset.label4x,
+                                device: Device.Preset.ZD620)
     zplenv.options.geometry.heightDots = length
-    let label: ZPLLabel = ZPLLabel(
+
+    let label = ZPLLabel(
         zpl,
         processors: [],
         environment: zplenv
@@ -37,7 +48,7 @@ public func generate_label(reminders: [ReminderSummary]) -> ZPLLabel {
 struct Todo : AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Print a list of uncompleted reminders",
-        subcommands: [List.self, Preview.self, Print.self],
+        subcommands: [List.self, Preview.self, Print.self, Zpl.self],
         defaultSubcommand: List.self // optional: default to `list` if no subcommand given
     )
 }
@@ -100,6 +111,18 @@ struct Print: AsyncParsableCommand {
     }
 }
 
+struct Zpl: AsyncParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "Print ZPL for reminder list to stdout",
+    )
+    
+    func run() async throws {
+        let reminders = try await Reminders().getUncompleted()
+        let label = generate_label(reminders: reminders)
+        
+        print(label.zpl())
+    }
+}
 
     
     
