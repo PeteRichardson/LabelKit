@@ -7,6 +7,10 @@
 
 import LabelKit
 import ArgumentParser
+import OSLog
+
+// Logger for the ReminderList tool
+fileprivate let logger = Logger(subsystem: "com.example.reminderlist", category: "printing")
 
 public func generate_label(reminders: [ReminderSummary]) -> ZPLLabel {
     let fontSize = 50
@@ -101,13 +105,45 @@ struct Print: AsyncParsableCommand {
         abstract: "Print list to network printer (at 192.168.0.133:9100)",
     )
     
+    @Flag(name: .shortAndLong, help: "Enable debug logging to Console")
+    var debug: Bool = false
+    
     func run() async throws {
+        if debug {
+            logger.info("Starting print command")
+        }
+        
+        if debug {
+            logger.info("Fetching uncompleted reminders from Reminders.app")
+        }
         let reminders = try await Reminders().getUncompleted()
+        if debug {
+            logger.info("Retrieved \(reminders.count) uncompleted reminder(s)")
+        }
+        
+        if debug {
+            logger.info("Generating ZPL label")
+        }
         let label = generate_label(reminders: reminders)
+        if debug {
+            logger.info("Label generated, ZPL length: \(label.zpl().count) bytes")
+        }
+        
         let zd620 = label.environment.options.device
         
+        if debug {
+            logger.info("Connecting to printer at 192.168.0.133:9100")
+        }
         let printer = NetworkTarget(device: zd620, host: "192.168.0.133", port: 9100)
+        
+        if debug {
+            logger.info("Sending ZPL payload to printer")
+        }
         try await printer.send(Payload.zpl(label.zpl(), dpi: zd620.nativeDPI))
+        
+        if debug {
+            logger.info("Print command completed successfully")
+        }
     }
 }
 
