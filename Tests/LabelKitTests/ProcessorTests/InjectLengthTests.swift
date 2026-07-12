@@ -26,7 +26,7 @@ struct InjectLengthTests {
             ^XZ
             """
         let label = ZPLLabel(zpl, processors: [InjectLength()])
-        let finalzpl = label.zpl()
+        let finalzpl = try label.zpl()
         #expect(finalzpl.contains("^LL240"))
     }
     
@@ -42,7 +42,7 @@ struct InjectLengthTests {
             ^XZ
             """
         let label = ZPLLabel(zpl, processors: [InjectLength()])
-        let finalzpl = label.zpl()
+        let finalzpl = try label.zpl()
         #expect(finalzpl.contains("^LL250"))
     }
     
@@ -58,7 +58,7 @@ struct InjectLengthTests {
             ^XZ
             """
         let label = ZPLLabel(zpl, processors: [InjectLength()])
-        let finalzpl = label.zpl()
+        let finalzpl = try label.zpl()
         #expect(finalzpl.contains("^LL490"))
     }
     

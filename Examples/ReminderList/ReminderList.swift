@@ -86,7 +86,7 @@ struct Preview: AsyncParsableCommand {
         let renderer = try T()
         
         let pngData = try await renderer.render(
-            from: label.zpl(),
+            from: try label.zpl(),
             options: imageOpts
         )
         try await target.send(Payload.png(pngData, dpi: device.nativeDPI), strict: true)
@@ -125,21 +125,22 @@ struct Print: AsyncParsableCommand {
             logger.info("Generating ZPL label")
         }
         let label = generate_label(reminders: reminders)
+        let zpl = try label.zpl()
         if debug {
-            logger.info("Label generated, ZPL length: \(label.zpl().count) bytes")
+            logger.info("Label generated, ZPL length: \(zpl.count) bytes")
         }
-        
+
         let zd620 = label.environment.options.device
-        
+
         if debug {
             logger.info("Connecting to printer at 192.168.0.133:9100")
         }
         let printer = NetworkTarget(device: zd620, host: "192.168.0.133", port: 9100)
-        
+
         if debug {
             logger.info("Sending ZPL payload to printer")
         }
-        try await printer.send(Payload.zpl(label.zpl(), dpi: zd620.nativeDPI))
+        try await printer.send(Payload.zpl(zpl, dpi: zd620.nativeDPI))
         
         if debug {
             logger.info("Print command completed successfully")
@@ -156,7 +157,7 @@ struct Zpl: AsyncParsableCommand {
         let reminders = try await Reminders().getUncompleted()
         let label = generate_label(reminders: reminders)
         
-        print(label.zpl())
+        print(try label.zpl())
     }
 }
 

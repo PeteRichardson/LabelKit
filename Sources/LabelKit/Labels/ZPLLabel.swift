@@ -22,14 +22,9 @@ public struct ZPLLabel: ZPLRepresentable, Observable {
         self.environment = environment
     }
     
-    public func zpl() -> String {
-//      print("calling zpl(): source: \(source), processors: \(processors),  enivronment.context: \(environment.context)")
-        do {
-            return try processors.reduce(source) { acc, p in
-                try p.process(acc, env: environment)
-            }
-        } catch {
-            return "Failed to process ZPL label: \(error)"
+    public func zpl() throws -> String {
+        try processors.reduce(source) { acc, p in
+            try p.process(acc, env: environment)
         }
     }
 }

@@ -56,10 +56,20 @@ struct ContentView: View {
         )
     }
     
+    /// For the read-only preview pane only — never sent to a printer. Surfaces
+    /// processor failures visibly instead of hiding them behind valid-looking ZPL.
+    private var resolvedZPLOrError: String {
+        do {
+            return try label.zpl()
+        } catch {
+            return "⚠️ Failed to resolve ZPL: \(error)"
+        }
+    }
+
     func printToPrinter() async throws {
         let zd620 = label.environment.options.device
         let printer = NetworkTarget(device: zd620, host: "192.168.0.133", port: 9100)
-        try await printer.send(Payload.zpl(label.zpl(), dpi: zd620.nativeDPI))
+        try await printer.send(Payload.zpl(try label.zpl(), dpi: zd620.nativeDPI))
     }
     
     var body: some View {
@@ -92,7 +102,7 @@ struct ContentView: View {
                     else {
                         RoundedRectangle(cornerRadius: 8, style: .continuous).frame(maxWidth: 406, maxHeight: 203)
                     }
-                    TextEditor(text: .constant(label.zpl()))
+                    TextEditor(text: .constant(resolvedZPLOrError))
                         .environment(\.font, editorFont)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                         .disabled(true)
@@ -115,7 +125,7 @@ struct ContentView: View {
                         do {
                             let imageData = try await LabelaryRenderer().render(
 //                            let imageData = try await ZPL2PNGRenderer().render(
-                                from: label.zpl(),
+                                from: try label.zpl(),
                                 options: imageOpts
                             )
                             if let nsImage = NSImage(data: imageData) {
