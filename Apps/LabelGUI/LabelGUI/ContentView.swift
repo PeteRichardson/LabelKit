@@ -76,12 +76,17 @@ struct ContentView: View {
                 VStack {
                     
                     if let labelPreview  = previewImage {
+                        // widthDots/heightDots are nil for continuous stock (see Stock.swift);
+                        // fall back to the same size used for the empty-state placeholder below.
+                        let geometry = label.environment.options.geometry
+                        let frameWidth = geometry.widthDots.map(CGFloat.init) ?? 406
+                        let frameHeight = geometry.heightDots.map(CGFloat.init) ?? 203
                         Image(nsImage: labelPreview)
                             .resizable()
                             .interpolation(.none)   // keeps thermal-label “crisp”
                             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                             .scaledToFit()
-                            .frame(maxWidth: CGFloat(label.environment.options.geometry.widthDots!), maxHeight: CGFloat(label.environment.options.geometry.heightDots!))
+                            .frame(maxWidth: frameWidth, maxHeight: frameHeight)
                             .shadow(radius: 8)
                     }
                     else {
