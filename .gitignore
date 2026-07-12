@@ -35,3 +35,7 @@ fastlane/test_output/
 *.xcuserstate
 *.xcscmblueprint
 
+# Docs
+docs/reviews/*
+!docs/reviews/PROJECT_REVIEW.md
+
