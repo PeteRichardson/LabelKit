@@ -23,7 +23,7 @@ struct StencilProcessorTests {
                              processors: [ResolveTemplates()!],
                              environment: .init(context: ctx)
         )
-        let finalzpl = label.zpl()
+        let finalzpl = try label.zpl()
         #expect(finalzpl.contains("Hello, World!"))
     }
 

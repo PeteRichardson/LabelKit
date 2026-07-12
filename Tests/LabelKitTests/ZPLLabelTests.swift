@@ -20,7 +20,7 @@ struct ZPLLabelTests {
                              environment: .init(context: KeyValueContext(["name": "World"])))
 
         // Then: the renderedZPL should contain the interpolated value
-        let out = label.zpl()
+        let out = try label.zpl()
         #expect(out.contains("Hello World"))
     }
 
@@ -31,14 +31,14 @@ struct ZPLLabelTests {
                              environment: .init(context: KeyValueContext(["who": "Alice"]))
         )
 
-        var out = label.zpl()
+        var out = try label.zpl()
         #expect(out.contains("Hi Alice"))
 
         // Change template and context; debouncer will schedule but we force immediate render
         label.source = "^XA\n^FO0,0^FDBye {{ who }}^FS\n^XZ"
         label.environment.context = KeyValueContext(["who": "Bob"])
 
-        out = label.zpl()
+        out = try label.zpl()
         #expect(out.contains("Bye Bob"))
     }
 
@@ -48,11 +48,11 @@ struct ZPLLabelTests {
         var label = ZPLLabel("^XA\n^FO0,0^FDItem: {{ item }}^FS\n^XZ",
                              processors: [ResolveTemplates()!],
                              environment: .init(context: KeyValueContext(["item": "A"])))
-        var out = label.zpl()
+        var out = try label.zpl()
         #expect(out.contains("Item: A"))
 
         label.environment.context = KeyValueContext(["item": "B"])
-        out = label.zpl()
+        out = try label.zpl()
         #expect(out.contains("Item: B"))
     }
 }

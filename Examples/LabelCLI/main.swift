@@ -33,14 +33,14 @@ func makeLabel() throws -> ZPLLabel {
 func printToPrinter(_ label: ZPLLabel) async throws {
     let zd620 = label.environment.options.device
     let printer = NetworkTarget(device: zd620, host: "192.168.0.133", port: 9100)
-    try await printer.send(Payload.zpl(label.zpl(), dpi: zd620.nativeDPI))
+    try await printer.send(Payload.zpl(try label.zpl(), dpi: zd620.nativeDPI))
 }
 
 /// Print label zpl text to stdout
 func printZPL(_ label: ZPLLabel) async throws {
     let zd620 = label.environment.options.device
     let stdout = StdoutTarget(device: label.environment.options.device)
-    try await stdout.send(Payload.zpl(label.zpl(), dpi: zd620.nativeDPI), strict: true)
+    try await stdout.send(Payload.zpl(try label.zpl(), dpi: zd620.nativeDPI), strict: true)
 }
 
 func printPreview<T: ImageRenderer>(_ label: ZPLLabel, using rendererType: T.Type) async throws {
@@ -49,7 +49,7 @@ func printPreview<T: ImageRenderer>(_ label: ZPLLabel, using rendererType: T.Typ
     let imageOpts = ImageRenderOptions(geometry: label.environment.options.geometry, timeout: 2.0)
     let renderer = try T()
     let pngData = try await renderer.render(
-        from: label.zpl(),
+        from: try label.zpl(),
         options: imageOpts
     )
     try await target.send(Payload.png(pngData, dpi: device.nativeDPI), strict: true)
