@@ -45,12 +45,19 @@ struct ContentView: View {
         let initialCtx = KeyValueContext(["name": "Pete",
                                           "length": "400"])
 
+        // Template resolution degrades gracefully: if the template store can't load,
+        // skip it rather than crash — the label still renders with Stencil syntax unresolved.
+        var processors: [any ZPLProcessor] = [InjectLength()]
+        if let resolveTemplates = ResolveTemplates() {
+            processors.append(resolveTemplates)
+        }
+
         // Initialize @State wrappers explicitly
         self._ctx = State(initialValue: initialCtx)
         self._label = State(initialValue:
             ZPLLabel(
                 text,
-                processors: [InjectLength(), ResolveTemplates()!],
+                processors: processors,
                 environment: .init(context: self._ctx.wrappedValue, options: .init(stock: stock, device: zd620))
             )
         )

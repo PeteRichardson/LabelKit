@@ -16,15 +16,23 @@ func loadSomeZPL() throws -> String {
     return try store.render(name: "label")
 }
 
+enum LabelCLIError: Error {
+    case templateStoreUnavailable
+}
+
 func makeLabel() throws -> ZPLLabel {
     let zpl = try loadSomeZPL()
     let stock = Stock.Preset.label2x1
     let zd620 = Device.Preset.ZD620
-    
+
+    guard let resolveTemplates = ResolveTemplates() else {
+        throw LabelCLIError.templateStoreUnavailable
+    }
+
     let zplenv = ZPLEnvironment(stock: stock, device: zd620)
     let label: ZPLLabel = ZPLLabel(
         zpl,
-        processors: [ResolveTemplates()!,  InjectLength(), PrettyPrint()],
+        processors: [resolveTemplates, InjectLength(), PrettyPrint()],
         environment: zplenv
     )
     return label

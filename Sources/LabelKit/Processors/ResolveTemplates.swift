@@ -16,29 +16,21 @@ enum PrintError: Error {
 
 /// A ZPLProcessor that resolves Stencil templates in the raw zpl from a StencilTemplateStore
 public struct ResolveTemplates: ZPLProcessor {
-    private var templateStore : StencilTemplateStore? = nil
-    
-    public func process(_ input: String, env: ZPLEnvironment) throws -> String {
-        // print("# Calling \(String(describing: type(of: self)))")
-        var zpl : String = ""
+    private let templateStore: StencilTemplateStore
 
-        if templateStore != nil {
-            // Render the given zpl in the given context
-            zpl = try templateStore!
-                .renderZPL(input, context: env.context.asDictionary())
-            //print("env.context = \(env.context)")
-        }
-        
-        return zpl
+    public func process(_ input: String, env: ZPLEnvironment) throws -> String {
+        try templateStore.renderZPL(input, context: env.context.asDictionary())
     }
-    
-    public init? () {
+
+    public init?() {
         do {
             // Get Templates from Application Support/.../templates.json
-            templateStore = try StencilTemplateStore()
-            try templateStore!.load()
+            let store = try StencilTemplateStore()
+            try store.load()
+            templateStore = store
         } catch {
-            print ("Error initializing StencilZPLProcessor::templateStore: \(error)")
+            print("Error initializing ResolveTemplates::templateStore: \(error)")
+            return nil
         }
     }
 }
