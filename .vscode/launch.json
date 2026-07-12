@@ -1,0 +1,44 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:LabelKit}",
+            "name": "Debug example-label",
+            "target": "example-label",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug example-label"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:LabelKit}",
+            "name": "Release example-label",
+            "target": "example-label",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release example-label"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:LabelKit}",
+            "name": "Debug example-reminderlist",
+            "target": "example-reminderlist",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug example-reminderlist"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:LabelKit}",
+            "name": "Release example-reminderlist",
+            "target": "example-reminderlist",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release example-reminderlist"
+        }
+    ]
+}
