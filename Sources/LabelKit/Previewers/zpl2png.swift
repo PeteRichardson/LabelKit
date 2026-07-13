@@ -111,32 +111,54 @@ public struct ZPL2PNGRenderer: ImageRenderer {
         
         let inPipe = Pipe(), outPipe = Pipe(), errPipe = Pipe()
         p.standardInput = inPipe; p.standardOutput = outPipe; p.standardError = errPipe
-        
+
         try p.run()
-        
+
+        // Drain stdout/stderr on background queues *while* the process runs, rather than
+        // reading only after it exits. Reading after exit deadlocks once the helper fills
+        // the OS pipe buffer (~64KB) writing its PNG: it blocks in write() and never exits,
+        // so the old poll loop just timed out waiting for a stuck process instead of a
+        // finished one (docs/reviews/code-review_src_2026-07-09.md HIGH #3, GitHub #30).
+        nonisolated(unsafe) var stdoutData = Data()
+        nonisolated(unsafe) var stderrData = Data()
+        let readGroup = DispatchGroup()
+        readGroup.enter()
+        DispatchQueue.global(qos: .utility).async {
+            stdoutData = outPipe.fileHandleForReading.readDataToEndOfFile()
+            readGroup.leave()
+        }
+        readGroup.enter()
+        DispatchQueue.global(qos: .utility).async {
+            stderrData = errPipe.fileHandleForReading.readDataToEndOfFile()
+            readGroup.leave()
+        }
+
         do {
             try inPipe.fileHandleForWriting.write(contentsOf: Data(zpl.utf8))
             try inPipe.fileHandleForWriting.close()
         }
         catch {
+            p.terminate()
             throw NSError(
                 domain: "ZPL2PNG",
                 code: 3,
                 userInfo: [NSLocalizedDescriptionKey: "Failed to write ZPL data: \(error.localizedDescription)"]
             )}
-        // crude timeout; polish as needed
-        let deadline = Date().addingTimeInterval(options.timeout)
-        while p.isRunning, Date() < deadline {
-            RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.01))
-        }
-        if p.isRunning { p.terminate() }
-        
-        let data = outPipe.fileHandleForReading.readDataToEndOfFile()
-        if p.terminationStatus != 0 || data.isEmpty {
-            let err = String(data: errPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
+
+        let timeoutWorkItem = DispatchWorkItem { if p.isRunning { p.terminate() } }
+        DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + options.timeout, execute: timeoutWorkItem)
+        p.waitUntilExit()
+        timeoutWorkItem.cancel()
+
+        // The background reads finish as soon as the process's pipes close, which
+        // waitUntilExit() above already waited for; this just synchronizes with them.
+        readGroup.wait()
+
+        if p.terminationStatus != 0 || stdoutData.isEmpty {
+            let err = String(data: stderrData, encoding: .utf8) ?? ""
             throw NSError(domain: "ZPL2PNG", code: Int(p.terminationStatus), userInfo: [NSLocalizedDescriptionKey: err])
         }
-        return data
+        return stdoutData
     }
     
 }

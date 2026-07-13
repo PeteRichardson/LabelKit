@@ -88,4 +88,39 @@ struct ZPL2PNGRendererRenderTests {
             _ = try await renderer.render(from: "^XA^FO20,20^A0N,30,30^FDHi^FS^XZ", options: options)
         }
     }
+
+    // Regression test for the pipe deadlock: a tiled grid of barcodes renders a PNG well
+    // over the ~64KB OS pipe buffer. Reading stdout only after the process exits used to
+    // hang here indefinitely (the helper blocks in write() with nobody draining stdout),
+    // relying on the timeout+terminate to eventually recover
+    // (docs/reviews/code-review_src_2026-07-09.md HIGH #3, GitHub #30). This must complete
+    // well within the timeout, not merely survive it.
+    @Test func largeOutputDoesNotDeadlock() async throws {
+        let device = Device.Preset.ZD620
+        let chars = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        var zpl = "^XA\n"
+        for row in 0..<90 {
+            let y = row * 300
+            for col in 0..<9 {
+                let x = col * 700
+                let code = String((0..<20).map { _ in chars.randomElement()! })
+                zpl += "^FO\(x),\(y)^BY2^BCN,80,Y,N,N^FD\(code)^FS\n"
+            }
+        }
+        zpl += "^XZ"
+
+        let geometry = RenderGeometry(dpi: device.nativeDPI.rawValue, widthDots: 3600, heightDots: 8400)
+        let options = ImageRenderOptions(geometry: geometry, timeout: 30)
+
+        let renderer = try ZPL2PNGRenderer()
+        let start = Date()
+        let data = try await renderer.render(from: zpl, options: options)
+        let elapsed = Date().timeIntervalSince(start)
+
+        #expect(data.count > 65536)
+        #expect(data.prefix(4) == Data([0x89, 0x50, 0x4E, 0x47]))
+        // A deadlocked render would consume the full 30s timeout; a healthy one finishes
+        // in well under a second on this input size.
+        #expect(elapsed < 10)
+    }
 }
