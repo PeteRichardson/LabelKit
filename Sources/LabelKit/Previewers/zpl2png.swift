@@ -7,12 +7,34 @@
 
 import Foundation
 import Security
-enum PreviewError: Error {
+
+enum PreviewError: Error, LocalizedError {
     case helperNotFound(String)
     case cannotLaunch(String)
     case noOutput(String)
     case badImageData
     case missingGeometry(String)
+    case writeFailed(String)
+    case helperFailed(status: Int32, stderr: String)
+
+    var errorDescription: String? {
+        switch self {
+        case .helperNotFound(let reason):
+            return "zpl2png helper not found: \(reason)"
+        case .cannotLaunch(let reason):
+            return "Failed to launch zpl2png helper: \(reason)"
+        case .noOutput:
+            return "zpl2png helper exited successfully but produced no output."
+        case .badImageData:
+            return "zpl2png helper produced data that isn't a valid image."
+        case .missingGeometry(let reason):
+            return "Cannot render label: \(reason)"
+        case .writeFailed(let reason):
+            return "Failed to write ZPL data to zpl2png helper: \(reason)"
+        case .helperFailed(let status, let stderr):
+            return "zpl2png helper exited with status \(status)" + (stderr.isEmpty ? "." : ": \(stderr)")
+        }
+    }
 }
 
 extension PreviewError: LocalizedError {
@@ -69,7 +91,7 @@ public struct ZPL2PNGRenderer: ImageRenderer {
     public init() throws {
         if isSandboxed() {
             guard let url = LabelKitResources.zpl2pngURL() else {
-                throw PreviewError.helperNotFound("Contents/Helpers")
+                throw PreviewError.helperNotFound("not found in Contents/Helpers")
             }
             self.helperURL = url
         } else {
@@ -82,7 +104,7 @@ public struct ZPL2PNGRenderer: ImageRenderer {
                 FileManager.default.isExecutableFile(atPath: $0.path) }) {
                 self.helperURL = url
             } else {
-                throw PreviewError.helperNotFound("bundle or common system paths")
+                throw PreviewError.helperNotFound("not found in bundle or common system paths")
             }
         }
     }
@@ -129,7 +151,11 @@ public struct ZPL2PNGRenderer: ImageRenderer {
         let inPipe = Pipe(), outPipe = Pipe(), errPipe = Pipe()
         p.standardInput = inPipe; p.standardOutput = outPipe; p.standardError = errPipe
 
-        try p.run()
+        do {
+            try p.run()
+        } catch {
+            throw PreviewError.cannotLaunch(error.localizedDescription)
+        }
 
         // Drain stdout/stderr on background queues *while* the process runs, rather than
         // reading only after it exits. Reading after exit deadlocks once the helper fills
@@ -156,7 +182,7 @@ public struct ZPL2PNGRenderer: ImageRenderer {
         }
         catch {
             p.terminate()
-            throw PreviewError.cannotLaunch("Failed to write ZPL data: \(error.localizedDescription)")
+            throw PreviewError.writeFailed(error.localizedDescription)
         }
 
         let timeoutWorkItem = DispatchWorkItem { if p.isRunning { p.terminate() } }
@@ -168,9 +194,12 @@ public struct ZPL2PNGRenderer: ImageRenderer {
         // waitUntilExit() above already waited for; this just synchronizes with them.
         readGroup.wait()
 
-        if p.terminationStatus != 0 || stdoutData.isEmpty {
+        if p.terminationStatus != 0 {
             let err = String(data: stderrData, encoding: .utf8) ?? ""
-            throw PreviewError.noOutput("helper exited with status \(p.terminationStatus): \(err)")
+            throw PreviewError.helperFailed(status: p.terminationStatus, stderr: err)
+        }
+        guard !stdoutData.isEmpty else {
+            throw PreviewError.noOutput
         }
         return stdoutData
     }

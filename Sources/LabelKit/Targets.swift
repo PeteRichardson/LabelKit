@@ -8,7 +8,7 @@
 import Foundation
 @preconcurrency import Network
 
-public enum Payload {
+public enum Payload: Sendable {
     case zpl(String, dpi: DPI)      // carry the render DPI with the ZPL
     case png(Data, dpi: DPI)
 }
@@ -62,9 +62,9 @@ public struct NetworkTarget: Target {
 
             var errorDescription: String? {
                 switch self {
-                case .invalidPort: return "Invalid target port"
-                case .timeout: return "Connection attempt timed out"
-                case .cancelled: return "Connection was cancelled"
+                case .invalidPort: return "Invalid printer port."
+                case .timeout: return "Connection to the printer timed out."
+                case .cancelled: return "Connection to the printer was cancelled."
                 }
             }
         }

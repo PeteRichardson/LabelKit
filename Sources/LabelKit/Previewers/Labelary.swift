@@ -52,41 +52,22 @@ public struct LabelaryRenderer: ImageRenderer {
     public init() {}
 }
 
-enum LabelaryError: Error {
+enum LabelaryError: Error, LocalizedError {
     case invalidDPmm
     case badURL
     case httpError(Int, String)
     case emptyData
-}
 
-extension LabelaryError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidDPmm:
-            return "Labelary only supports 6, 8, 12, or 24 dots/mm"
+            return "Labelary only supports 6, 8, 12, or 24 dots per millimeter; this geometry's DPI doesn't map to one of those."
         case .badURL:
-            return "Could not construct a valid Labelary request URL"
-        case let .httpError(status, body):
-            return "Labelary request failed with HTTP \(status): \(body)"
+            return "Failed to construct a valid Labelary API request URL."
+        case .httpError(let status, let body):
+            return "Labelary API returned HTTP \(status)" + (body.isEmpty ? "." : ": \(body)")
         case .emptyData:
-            return "Labelary returned an empty response"
+            return "Labelary API returned no image data."
         }
     }
-}
-
-
-public func showImageInITerm2(data: Data) {
-    // Base64-encode the image
-    let base64 = data.base64EncodedString()
-
-    // iTerm2 escape sequence format for inline images
-    let esc = "\u{1b}"  // Escape character
-    let osc = "]"
-    let st = "\\"
-
-    let header = "\(esc)\(osc)1337;File=inline=1;width=auto;height=auto;preserveAspectRatio=1:"
-    let footer = "\(esc)\(st)"
-
-    // Print the sequence to the terminal
-    print("\(header)\(base64)\(footer)")
 }

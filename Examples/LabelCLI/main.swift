@@ -42,28 +42,19 @@ func makeLabel() throws -> ZPLLabel {
 }
 
 func printToPrinter(_ label: ZPLLabel) async throws {
-    let zd620 = label.environment.options.device
-    let printer = NetworkTarget(device: zd620, host: PrinterDefaults.host, port: PrinterDefaults.port)
-    try await printer.send(Payload.zpl(try label.zpl(), dpi: zd620.nativeDPI))
+    let printer = NetworkTarget(device: label.environment.options.device, host: PrinterDefaults.host, port: PrinterDefaults.port)
+    try await label.print(to: printer)
 }
 
 /// Print label zpl text to stdout
 func printZPL(_ label: ZPLLabel) async throws {
-    let zd620 = label.environment.options.device
     let stdout = StdoutTarget(device: label.environment.options.device)
-    try await stdout.send(Payload.zpl(try label.zpl(), dpi: zd620.nativeDPI), strict: true)
+    try await label.print(to: stdout)
 }
 
 func printPreview<T: ImageRenderer>(_ label: ZPLLabel, using rendererType: T.Type) async throws {
-    let device = label.environment.options.device
-    let target = ITerm2Target(device: device)
-    let imageOpts = ImageRenderOptions(geometry: label.environment.options.geometry, timeout: 2.0)
-    let renderer = try T()
-    let pngData = try await renderer.render(
-        from: try label.zpl(),
-        options: imageOpts
-    )
-    try await target.send(Payload.png(pngData, dpi: device.nativeDPI), strict: true)
+    let target = ITerm2Target(device: label.environment.options.device)
+    try await label.preview(using: rendererType, to: target, timeout: 2.0)
 }
 
 Task {
