@@ -50,11 +50,7 @@ struct ZPL2PNGRendererRenderTests {
 
     // Whole-inch, non-continuous stock (Stock.Preset.label2x1) always has a non-nil
     // heightDots, so this exercises `runHelper`'s width/height math without touching the
-    // force-unwrap crash on continuous stock (docs/reviews/PROJECT_REVIEW.md F3,
-    // docs/reviews/code-review_src_2026-07-09.md HIGH #1) — that path can't be covered by a
-    // test at all today, since a force-unwrap trap kills the whole test process rather than
-    // throwing something `#expect(throws:)` can catch. It needs the production code fixed to
-    // throw first.
+    // missing-geometry path covered by continuousStockThrowsInsteadOfCrashing below.
     @Test func rendersPNGDataForWholeInchStock() async throws {
         let device = Device.Preset.ZD620
         let stock = Stock.Preset.label2x1
@@ -71,5 +67,25 @@ struct ZPL2PNGRendererRenderTests {
         #expect(!data.isEmpty)
         // PNG signature: 0x89 'P' 'N' 'G' \r \n \x1A \n
         #expect(data.prefix(4) == Data([0x89, 0x50, 0x4E, 0x47]))
+    }
+
+    // Continuous stock (Stock.Preset.label4x, e.g. used by example-reminderlist) has a nil
+    // heightDots by design (Stock.heightInches). This used to force-unwrap and crash the whole
+    // process (docs/reviews/PROJECT_REVIEW.md F3, docs/reviews/code-review_src_2026-07-09.md
+    // HIGH #1); it must now throw a catchable error instead.
+    @Test func continuousStockThrowsInsteadOfCrashing() async throws {
+        let device = Device.Preset.ZD620
+        let stock = Stock.Preset.label4x
+        let geometry = RenderGeometry(
+            dpi: device.nativeDPI.rawValue,
+            widthDots: stock.widthDots(at: device.nativeDPI),
+            heightDots: stock.heightDots(at: device.nativeDPI)
+        )
+        let options = ImageRenderOptions(geometry: geometry, timeout: 10)
+
+        let renderer = try ZPL2PNGRenderer()
+        await #expect(throws: PreviewError.self) {
+            _ = try await renderer.render(from: "^XA^FO20,20^A0N,30,30^FDHi^FS^XZ", options: options)
+        }
     }
 }

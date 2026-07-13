@@ -12,6 +12,7 @@ enum PreviewError: Error {
     case cannotLaunch(String)
     case noOutput
     case badImageData
+    case missingGeometry(String)
 }
 
 func isSandboxed() -> Bool {
@@ -90,8 +91,18 @@ public struct ZPL2PNGRenderer: ImageRenderer {
         p.executableURL = helperURL
         var args: [String] = []
         
-        let widthMM = Int(round(Double(options.geometry.widthDots!)  / Double(options.geometry.dpi)) * 25.4)
-        let heightMM = Int(round(Double(options.geometry.heightDots!) / Double(options.geometry.dpi)) * 25.4)
+        // widthDots/heightDots are nil for continuous stock (see Stock.heightInches) or when
+        // geometry hasn't been fully resolved yet; there's no safe fallback for actual PNG
+        // dimensions, so surface that as a typed error instead of crashing (docs/reviews/
+        // PROJECT_REVIEW.md F3, docs/reviews/code-review_src_2026-07-09.md HIGH #1).
+        guard let widthDots = options.geometry.widthDots else {
+            throw PreviewError.missingGeometry("widthDots is nil")
+        }
+        guard let heightDots = options.geometry.heightDots else {
+            throw PreviewError.missingGeometry("heightDots is nil (continuous stock has no fixed height)")
+        }
+        let widthMM = Int(round(Double(widthDots)  / Double(options.geometry.dpi)) * 25.4)
+        let heightMM = Int(round(Double(heightDots) / Double(options.geometry.dpi)) * 25.4)
         args += ["--width-mm", String(widthMM)]
         args += ["--height-mm", String(heightMM)]
         args += ["--dpmm", String(Int(round(Double(options.geometry.dpi)/25.4)))]

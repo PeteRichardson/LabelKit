@@ -40,11 +40,23 @@ public struct RenderGeometry: Sendable {
     public var dpi: Int
     public var widthDots: Int?      // optional; renderer may infer from ^PW
     public var heightDots: Int?     // optional; renderer may auto-size
-    
+
     public init(dpi: Int, widthDots: Int? = nil, heightDots: Int? = nil) {
         self.dpi = dpi
         self.widthDots = widthDots
         self.heightDots = heightDots
+    }
+}
+
+extension RenderGeometry {
+    /// `widthDots`/`heightDots` are `nil` for continuous stock (see `Stock.heightInches`).
+    /// Callers that just need *some* concrete size (e.g. sizing a preview frame) should
+    /// resolve through these instead of force-unwrapping independently.
+    public func resolvedWidthDots(fallback: Int) -> Int {
+        widthDots ?? fallback
+    }
+    public func resolvedHeightDots(fallback: Int) -> Int {
+        heightDots ?? fallback
     }
 }
 
