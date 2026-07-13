@@ -8,6 +8,9 @@ import SwiftUI
 import AppKit
 import LabelKit
 import Observation
+import OSLog
+
+private let logger = Logger(subsystem: "com.peterichardson.LabelGUI", category: "rendering")
 
 private var editorFont: Font {
     // Try your named font first
@@ -136,11 +139,11 @@ struct ContentView: View {
                                 options: imageOpts
                             )
                             if let nsImage = NSImage(data: imageData) {
-                                print("Got image data!")
+                                logger.info("Got image data")
                                 await MainActor.run { previewImage = nsImage }
                             }
                         } catch {
-                            print("Didn't get image data! \(error)")
+                            logger.error("Didn't get image data: \(error)")
                             await MainActor.run { previewImage = nil }
                         }
                     }
