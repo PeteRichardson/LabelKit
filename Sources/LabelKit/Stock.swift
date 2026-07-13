@@ -55,6 +55,29 @@ extension Stock {
 }
 
 
+extension RenderGeometry {
+    /// Converts a dot measurement at this geometry's dpi to inches.
+    public func inches(fromDots dots: Int) -> Double {
+        Double(dots) / Double(dpi)
+    }
+
+    /// Converts a dot measurement at this geometry's dpi to millimeters, using the same
+    /// `Units.millimetersPerInch` constant as `Stock.widthMM()`/`heightMM()`, so every
+    /// dots<->mm conversion in the package agrees. `zpl2png.swift` and `Labelary.swift`
+    /// each reimplemented this independently, which is exactly why a rounding-order bug
+    /// (docs/reviews/code-review_src_2026-07-09.md HIGH #2, GitHub #29) shipped in one but
+    /// not the other (docs/reviews/PROJECT_REVIEW.md F6, GitHub #7).
+    public func millimeters(fromDots dots: Int) -> Double {
+        inches(fromDots: dots) * Units.millimetersPerInch
+    }
+
+    /// This geometry's dpi expressed as dots-per-millimeter, rounded — the unit both
+    /// zpl2png and the Labelary API expect.
+    public var dotsPerMillimeter: Int {
+        Int((Double(dpi) / Units.millimetersPerInch).rounded())
+    }
+}
+
 public extension Stock {
     enum Preset {
         public static let label2x1 = Stock(

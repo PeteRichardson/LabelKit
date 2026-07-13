@@ -101,16 +101,14 @@ public struct ZPL2PNGRenderer: ImageRenderer {
         guard let heightDots = options.geometry.heightDots else {
             throw PreviewError.missingGeometry("heightDots is nil (continuous stock has no fixed height)")
         }
-        // Convert dots -> inches -> mm and round once, at the end. Rounding the
-        // intermediate inches value first (the old `round(dots / dpi) * 25.4`) truncated
-        // every non-whole-inch dimension to the nearest whole inch before converting,
-        // e.g. 1.5in became 2in -> 50.8mm instead of 38.1mm (docs/reviews/
-        // code-review_src_2026-07-09.md HIGH #2, GitHub #29).
-        let widthMM = Int((Double(widthDots) / Double(options.geometry.dpi) * 25.4).rounded())
-        let heightMM = Int((Double(heightDots) / Double(options.geometry.dpi) * 25.4).rounded())
+        // Convert dots -> mm via RenderGeometry's shared helper (docs/reviews/
+        // PROJECT_REVIEW.md F6, GitHub #7), which Labelary.swift now uses too. It rounds
+        // once, at the end, avoiding the rounding-order bug fixed in GitHub #29.
+        let widthMM = Int(options.geometry.millimeters(fromDots: widthDots).rounded())
+        let heightMM = Int(options.geometry.millimeters(fromDots: heightDots).rounded())
         args += ["--width-mm", String(widthMM)]
         args += ["--height-mm", String(heightMM)]
-        args += ["--dpmm", String(Int(round(Double(options.geometry.dpi)/25.4)))]
+        args += ["--dpmm", String(options.geometry.dotsPerMillimeter)]
         p.arguments = args
         //print(args)
         
