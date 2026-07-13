@@ -29,13 +29,26 @@ struct NetworkTargetDPIGuardTests {
         }
     }
 
-    // NOTE: deliberately no "DPI matches, so it proceeds to sendRaw" test here.
-    // sendRaw's connect-timeout is defeated by a task-group/continuation deadlock
-    // (docs/reviews/code-review_src_2026-07-09.md HIGH #5) — against an unroutable
-    // host it can hang far past its nominal timeout, or indefinitely. Exercising
-    // that path needs either the deadlock fixed first or NetworkTarget refactored
-    // behind a mockable connection abstraction; forcing it here would risk hanging
-    // the whole test suite.
+    // 203.0.113.1 (RFC 5737 TEST-NET-3) is guaranteed non-routable. Depending on the
+    // network this runs on, connecting to it either fails fast (.failed) or parks the
+    // connection unresolved (.waiting) until the OS's own connect timeout (75s+) —
+    // confirmed to be the latter in this environment via a raw `nc` connect that didn't
+    // resolve within several seconds. Before the fix, a task-group/continuation deadlock
+    // meant the .waiting case could hang for that OS timeout or indefinitely, regardless
+    // of the `timeout:` argument below (docs/reviews/code-review_src_2026-07-09.md HIGH
+    // #5, GitHub #31); the assertion is bounded well under 75s to catch that regression
+    // while staying tolerant of the fail-fast case on networks where that's what happens.
+    @Test func sendRawTimesOutInsteadOfHangingOnUnroutableHost() async throws {
+        let target = NetworkTarget(device: device, host: "203.0.113.1", port: 9100)
+
+        let start = Date()
+        await #expect(throws: (any Error).self) {
+            try await target.sendRaw(Data("^XA^XZ".utf8), timeout: 2)
+        }
+        let elapsed = Date().timeIntervalSince(start)
+
+        #expect(elapsed < 10)
+    }
 }
 
 @Suite("FileTarget")
