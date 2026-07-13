@@ -96,8 +96,8 @@ struct ContentView: View {
                         // widthDots/heightDots are nil for continuous stock (see Stock.swift);
                         // fall back to the same size used for the empty-state placeholder below.
                         let geometry = label.environment.options.geometry
-                        let frameWidth = geometry.widthDots.map(CGFloat.init) ?? 406
-                        let frameHeight = geometry.heightDots.map(CGFloat.init) ?? 203
+                        let frameWidth = CGFloat(geometry.resolvedWidthDots(fallback: 406))
+                        let frameHeight = CGFloat(geometry.resolvedHeightDots(fallback: 203))
                         Image(nsImage: labelPreview)
                             .resizable()
                             .interpolation(.none)   // keeps thermal-label “crisp”
