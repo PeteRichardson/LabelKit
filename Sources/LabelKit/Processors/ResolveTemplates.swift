@@ -8,10 +8,21 @@
 import Foundation
 
 
-enum PrintError: Error {
+enum PrintError: Error, LocalizedError {
     case dpiMismatch(render: DPI, device: DPI)
     case widthOverflow(requested: Int, max: Int)
     case lengthOverflow(requested: Int, max: Int)
+
+    var errorDescription: String? {
+        switch self {
+        case .dpiMismatch(let render, let device):
+            return "Render DPI (\(render.rawValue)) doesn't match the device's native DPI (\(device.rawValue)). Pass strict: false to send anyway."
+        case .widthOverflow(let requested, let max):
+            return "Requested width (\(requested) dots) exceeds the device's maximum width (\(max) dots)."
+        case .lengthOverflow(let requested, let max):
+            return "Requested length (\(requested) dots) exceeds the device's maximum length (\(max) dots)."
+        }
+    }
 }
 
 /// A ZPLProcessor that resolves Stencil templates in the raw zpl from a StencilTemplateStore

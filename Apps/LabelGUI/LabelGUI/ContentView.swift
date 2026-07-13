@@ -8,6 +8,9 @@ import SwiftUI
 import AppKit
 import LabelKit
 import Observation
+import OSLog
+
+private let logger = Logger(subsystem: "com.peterichardson.LabelGUI", category: "rendering")
 
 private var editorFont: Font {
     // Try your named font first
@@ -74,7 +77,7 @@ struct ContentView: View {
     }
 
     func printToPrinter() async throws {
-        let printer = NetworkTarget(device: label.environment.options.device, host: "192.168.0.133", port: 9100)
+        let printer = NetworkTarget(device: label.environment.options.device, host: PrinterDefaults.host, port: PrinterDefaults.port)
         try await label.print(to: printer)
     }
     
@@ -123,11 +126,11 @@ struct ContentView: View {
                         do {
                             let imageData = try await label.renderPreview(using: LabelaryRenderer.self, timeout: 2.0)
                             if let nsImage = NSImage(data: imageData) {
-                                print("Got image data!")
+                                logger.info("Got image data")
                                 await MainActor.run { previewImage = nsImage }
                             }
                         } catch {
-                            print("Didn't get image data! \(error)")
+                            logger.error("Didn't get image data: \(error)")
                             await MainActor.run { previewImage = nil }
                         }
                     }

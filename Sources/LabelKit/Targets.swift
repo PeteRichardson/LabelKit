@@ -25,6 +25,12 @@ public protocol Target {
     func send(_ payload: Payload, strict: Bool) async throws
 }
 
+/// Shared default connection info for the example printer used by LabelCLI, ReminderList, and LabelGUI.
+public enum PrinterDefaults {
+    public static let host = "192.168.0.133"
+    public static let port: UInt16 = 9100
+}
+
 public struct NetworkTarget: Target {
     public let device: Device
     private let host: String
@@ -51,7 +57,17 @@ public struct NetworkTarget: Target {
         let host = self.host
         let port = self.port
 
-        enum NetworkSendError: Error { case invalidPort, timeout, cancelled }
+        enum NetworkSendError: Error, LocalizedError {
+            case invalidPort, timeout, cancelled
+
+            var errorDescription: String? {
+                switch self {
+                case .invalidPort: return "Invalid printer port."
+                case .timeout: return "Connection to the printer timed out."
+                case .cancelled: return "Connection to the printer was cancelled."
+                }
+            }
+        }
         guard let nwPort = NWEndpoint.Port(rawValue: port) else { throw NetworkSendError.invalidPort }
 
         let conn = NWConnection(

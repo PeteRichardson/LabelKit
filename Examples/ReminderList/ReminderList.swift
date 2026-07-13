@@ -87,7 +87,7 @@ struct Preview: AsyncParsableCommand {
 
 struct Print: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        abstract: "Print list to network printer (at 192.168.0.133:9100)",
+        abstract: "Print list to network printer (at \(PrinterDefaults.host):\(PrinterDefaults.port))",
     )
     
     @Flag(name: .shortAndLong, help: "Enable debug logging to Console")
@@ -116,9 +116,9 @@ struct Print: AsyncParsableCommand {
         }
 
         if debug {
-            logger.info("Connecting to printer at 192.168.0.133:9100")
+            logger.info("Connecting to printer at \(PrinterDefaults.host):\(PrinterDefaults.port)")
         }
-        let printer = NetworkTarget(device: label.environment.options.device, host: "192.168.0.133", port: 9100)
+        let printer = NetworkTarget(device: label.environment.options.device, host: PrinterDefaults.host, port: PrinterDefaults.port)
 
         if debug {
             logger.info("Sending ZPL payload to printer")
