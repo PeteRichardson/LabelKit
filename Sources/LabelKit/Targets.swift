@@ -64,23 +64,36 @@ public struct NetworkTarget: Target {
         do {
             try await withThrowingTaskGroup(of: Void.self) { group in
                 group.addTask {
-                    try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-                        conn.stateUpdateHandler = { state in
-                            switch state {
-                            case .ready:
-                                conn.stateUpdateHandler = nil
-                                cont.resume(returning: ())
-                            case .failed(let error):
-                                conn.stateUpdateHandler = nil
-                                cont.resume(throwing: error)
-                            case .cancelled:
-                                conn.stateUpdateHandler = nil
-                                cont.resume(throwing: NetworkSendError.cancelled)
-                            default:
-                                break
+                    // withCheckedThrowingContinuation is not cancellation-aware on its own:
+                    // when the timeout task below wins and group.cancelAll() marks this task
+                    // cancelled, nothing would resume the continuation, so it (and the group)
+                    // would hang until the connection resolves on its own — the OS's own
+                    // connect timeout (75s+) for an unroutable/black-holed host, or forever
+                    // (docs/reviews/code-review_src_2026-07-09.md HIGH #5, GitHub #31).
+                    // withTaskCancellationHandler bridges that gap: cancellation calls
+                    // conn.cancel(), which drives the state machine to .cancelled and resumes
+                    // the continuation, breaking the wait.
+                    try await withTaskCancellationHandler {
+                        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+                            conn.stateUpdateHandler = { state in
+                                switch state {
+                                case .ready:
+                                    conn.stateUpdateHandler = nil
+                                    cont.resume(returning: ())
+                                case .failed(let error):
+                                    conn.stateUpdateHandler = nil
+                                    cont.resume(throwing: error)
+                                case .cancelled:
+                                    conn.stateUpdateHandler = nil
+                                    cont.resume(throwing: NetworkSendError.cancelled)
+                                default:
+                                    break
+                                }
                             }
+                            conn.start(queue: .global(qos: .userInitiated))
                         }
-                        conn.start(queue: .global(qos: .userInitiated))
+                    } onCancel: {
+                        conn.cancel()
                     }
                 }
                 group.addTask {
