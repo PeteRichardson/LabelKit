@@ -104,8 +104,8 @@ public struct ZPL2PNGRenderer: ImageRenderer {
         try p.run()
         
         do {
-            inPipe.fileHandleForWriting.write(Data(zpl.utf8))
-            try? inPipe.fileHandleForWriting.close()
+            try inPipe.fileHandleForWriting.write(contentsOf: Data(zpl.utf8))
+            try inPipe.fileHandleForWriting.close()
         }
         catch {
             throw NSError(
