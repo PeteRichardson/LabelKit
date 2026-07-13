@@ -11,7 +11,7 @@ import Security
 enum PreviewError: Error, LocalizedError {
     case helperNotFound(String)
     case cannotLaunch(String)
-    case noOutput(String)
+    case noOutput
     case badImageData
     case missingGeometry(String)
     case writeFailed(String)
@@ -33,23 +33,6 @@ enum PreviewError: Error, LocalizedError {
             return "Failed to write ZPL data to zpl2png helper: \(reason)"
         case .helperFailed(let status, let stderr):
             return "zpl2png helper exited with status \(status)" + (stderr.isEmpty ? "." : ": \(stderr)")
-        }
-    }
-}
-
-extension PreviewError: LocalizedError {
-    var errorDescription: String? {
-        switch self {
-        case let .helperNotFound(detail):
-            return "zpl2png helper not found: \(detail)"
-        case let .cannotLaunch(detail):
-            return "Could not run zpl2png helper: \(detail)"
-        case let .noOutput(detail):
-            return "zpl2png helper produced no output: \(detail)"
-        case .badImageData:
-            return "zpl2png helper produced data that isn't a valid image"
-        case let .missingGeometry(detail):
-            return "Missing render geometry: \(detail)"
         }
     }
 }
