@@ -58,20 +58,3 @@ enum LabelaryError: Error {
     case httpError(Int, String)
     case emptyData
 }
-
-
-public func showImageInITerm2(data: Data) {
-    // Base64-encode the image
-    let base64 = data.base64EncodedString()
-
-    // iTerm2 escape sequence format for inline images
-    let esc = "\u{1b}"  // Escape character
-    let osc = "]"
-    let st = "\\"
-
-    let header = "\(esc)\(osc)1337;File=inline=1;width=auto;height=auto;preserveAspectRatio=1:"
-    let footer = "\(esc)\(st)"
-
-    // Print the sequence to the terminal
-    print("\(header)\(base64)\(footer)")
-}
