@@ -77,9 +77,8 @@ struct ContentView: View {
     }
 
     func printToPrinter() async throws {
-        let zd620 = label.environment.options.device
-        let printer = NetworkTarget(device: zd620, host: PrinterDefaults.host, port: PrinterDefaults.port)
-        try await printer.send(Payload.zpl(try label.zpl(), dpi: zd620.nativeDPI))
+        let printer = NetworkTarget(device: label.environment.options.device, host: PrinterDefaults.host, port: PrinterDefaults.port)
+        try await label.print(to: printer)
     }
     
     var body: some View {
@@ -124,20 +123,8 @@ struct ContentView: View {
                 Spacer()
                 Button("Render", systemImage: "paperplane.circle") {
                     Task {
-                        let device = $label.wrappedValue.environment.options.device
-                        let stock = $label.wrappedValue.environment.options.stock
-                        let geometry = RenderGeometry(
-                            dpi: device.nativeDPI.rawValue,
-                            widthDots: stock.widthDots(at: device.nativeDPI),
-                            heightDots: stock.heightDots(at: device.nativeDPI)
-                        )
-                        let imageOpts = ImageRenderOptions(geometry: geometry, timeout: 2.0)
                         do {
-                            let imageData = try await LabelaryRenderer().render(
-//                            let imageData = try await ZPL2PNGRenderer().render(
-                                from: try label.zpl(),
-                                options: imageOpts
-                            )
+                            let imageData = try await label.renderPreview(using: LabelaryRenderer.self, timeout: 2.0)
                             if let nsImage = NSImage(data: imageData) {
                                 logger.info("Got image data")
                                 await MainActor.run { previewImage = nsImage }

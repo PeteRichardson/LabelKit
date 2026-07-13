@@ -76,26 +76,11 @@ struct Preview: AsyncParsableCommand {
    
     var reminders: [ReminderSummary] = []
     
-    func printPreview<T: ImageRenderer>(_ label: ZPLLabel, using rendererType: T.Type) async throws {
-        let device = label.environment.options.device
-        let target = ITerm2Target(device: device)
-        var imageOpts = ImageRenderOptions(geometry: label.environment.options.geometry, timeout: 2.0)
-        if imageOpts.geometry.heightDots == nil {
-            imageOpts.geometry.heightDots = 500
-        }
-        let renderer = try T()
-        
-        let pngData = try await renderer.render(
-            from: try label.zpl(),
-            options: imageOpts
-        )
-        try await target.send(Payload.png(pngData, dpi: device.nativeDPI), strict: true)
-    }
-    
     func run() async throws {
         let reminders = try await Reminders().getUncompleted()
         let label = generate_label(reminders: reminders)
-        try await printPreview(label, using: ZPL2PNGRenderer.self)
+        let target = ITerm2Target(device: label.environment.options.device)
+        try await label.preview(using: ZPL2PNGRenderer.self, to: target, timeout: 2.0, fallbackHeightDots: 500)
     }
 }
 
@@ -130,18 +115,16 @@ struct Print: AsyncParsableCommand {
             logger.info("Label generated, ZPL length: \(zpl.count) bytes")
         }
 
-        let zd620 = label.environment.options.device
-
         if debug {
             logger.info("Connecting to printer at \(PrinterDefaults.host):\(PrinterDefaults.port)")
         }
-        let printer = NetworkTarget(device: zd620, host: PrinterDefaults.host, port: PrinterDefaults.port)
+        let printer = NetworkTarget(device: label.environment.options.device, host: PrinterDefaults.host, port: PrinterDefaults.port)
 
         if debug {
             logger.info("Sending ZPL payload to printer")
         }
-        try await printer.send(Payload.zpl(zpl, dpi: zd620.nativeDPI))
-        
+        try await label.print(to: printer)
+
         if debug {
             logger.info("Print command completed successfully")
         }
