@@ -8,6 +8,9 @@
 import Foundation
 import LabelKit
 import Stencil
+import OSLog
+
+private let logger = Logger(subsystem: "com.example.labelcli", category: "label")
 
 func loadSomeZPL() throws -> String {
     // Get Templates from Application Support/.../templates.json
@@ -64,15 +67,27 @@ func printPreview<T: ImageRenderer>(_ label: ZPLLabel, using rendererType: T.Typ
 }
 
 Task {
+    do {
+        logger.info("Building label")
+        let label = try makeLabel()
 
-    let label = try makeLabel()
-    
-//    try await printToPrinter(label)
-    try await printZPL(label)
-    try await printPreview(label, using: LabelaryRenderer.self)
-    try await printPreview(label, using: ZPL2PNGRenderer.self)
+        logger.info("Sending ZPL to stdout")
+//        try await printToPrinter(label)
+        try await printZPL(label)
 
-    exit(EXIT_SUCCESS)
+        logger.info("Rendering Labelary preview")
+        try await printPreview(label, using: LabelaryRenderer.self)
+
+        logger.info("Rendering zpl2png preview")
+        try await printPreview(label, using: ZPL2PNGRenderer.self)
+
+        exit(EXIT_SUCCESS)
+    } catch {
+        // Previously uncaught: an error thrown here just vanished, since a top-level
+        // Task's error isn't surfaced anywhere on its own.
+        logger.error("LabelCLI failed: \(error)")
+        exit(EXIT_FAILURE)
+    }
 }
 
 dispatchMain()
