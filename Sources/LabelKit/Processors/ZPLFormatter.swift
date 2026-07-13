@@ -56,11 +56,20 @@ public enum ZPLFormatter {
             let sig = s[i]  // '^' or '~'
             i = s.index(after: i)
 
-            // Read command code (A–Z, 1–2 chars commonly; accept up to 3 to be safe)
+            // Read command mnemonic: single letter (with optional "@" for ^A@),
+            // or letter+alphanumeric (e.g. "FD", "B3"). Reading more than 2 chars
+            // would swallow the first letter of ^FD content that starts uppercase.
             var code = ""
             var j = i
-            while j < s.endIndex, s[j].isUppercaseLetter, code.count < 3 {
+            if j < s.endIndex, s[j].isUppercaseLetter {
                 code.append(s[j]); j = s.index(after: j)
+                if code == "A" {
+                    if j < s.endIndex, s[j] == "@" {
+                        code.append(s[j]); j = s.index(after: j)
+                    }
+                } else if j < s.endIndex, s[j].isUppercaseLetter || s[j].isNumber {
+                    code.append(s[j]); j = s.index(after: j)
+                }
             }
             // No code? skip
             if code.isEmpty {

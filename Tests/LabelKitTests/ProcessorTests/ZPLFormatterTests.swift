@@ -46,26 +46,17 @@ struct ZPLFormatterTests {
         #expect(out == "^FDhello, world^FS")
     }
 
-    // MARK: - FD field data: known corruption bug (docs/reviews/code-review_src_2026-07-09.md, HIGH #4)
+    // MARK: - FD field data: content starting uppercase (docs/reviews/code-review_src_2026-07-09.md, HIGH #4)
 
-    /// The mnemonic reader in `format(_:pretty:)` consumes up to 3 uppercase letters
-    /// before checking `code == "FD"`. For `^FDHello...` it reads "FDH", the FD-preservation
-    /// branch is skipped, and the content is instead treated as ordinary command params —
-    /// which strips whitespace. This test documents the bug so it fails loudly (not silently)
-    /// once someone fixes the mnemonic reader to special-case FD/FS.
-    @Test func minifyCorruptsFDContentThatStartsUppercase() {
-        withKnownIssue("ZPLFormatter reads a 3-char mnemonic before checking for FD, so content starting with an uppercase letter isn't recognized as field data and gets whitespace-stripped like a normal command's params (docs/reviews/code-review_src_2026-07-09.md HIGH #4)") {
-            let zpl = "^FDHello World^FS"
-            let out = ZPLFormatter.minify(zpl)
-            #expect(out == "^FDHello World^FS")
-        }
+    @Test func minifyPreservesFDContentThatStartsUppercase() {
+        let zpl = "^FDHello World^FS"
+        let out = ZPLFormatter.minify(zpl)
+        #expect(out == "^FDHello World^FS")
     }
 
-    @Test func prettyPrintCorruptsCommaSpacingInFDContentThatStartsUppercase() {
-        withKnownIssue("Same root cause as the minify case: FD content starting with an uppercase letter falls through to normalizeParams(), which strips the space after commas inside label text (docs/reviews/code-review_src_2026-07-09.md HIGH #4)") {
-            let zpl = "^FDHello, World^FS"
-            let out = ZPLFormatter.prettyPrint(zpl)
-            #expect(out == "^FDHello, World^FS")
-        }
+    @Test func prettyPrintPreservesCommaSpacingInFDContentThatStartsUppercase() {
+        let zpl = "^FDHello, World^FS"
+        let out = ZPLFormatter.prettyPrint(zpl)
+        #expect(out == "^FDHello, World^FS")
     }
 }
