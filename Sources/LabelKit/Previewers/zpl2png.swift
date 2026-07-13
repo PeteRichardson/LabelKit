@@ -69,7 +69,7 @@ public struct ZPL2PNGRenderer: ImageRenderer {
     public init() throws {
         if isSandboxed() {
             guard let url = LabelKitResources.zpl2pngURL() else {
-                throw PreviewError.helperNotFound("not found in Contents/Helpers")
+                throw PreviewError.helperNotFound("Contents/Helpers")
             }
             self.helperURL = url
         } else {
@@ -82,7 +82,7 @@ public struct ZPL2PNGRenderer: ImageRenderer {
                 FileManager.default.isExecutableFile(atPath: $0.path) }) {
                 self.helperURL = url
             } else {
-                throw PreviewError.helperNotFound("not found in bundle or common system paths")
+                throw PreviewError.helperNotFound("bundle or common system paths")
             }
         }
     }
