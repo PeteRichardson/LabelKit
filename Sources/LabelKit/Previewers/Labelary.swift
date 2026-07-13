@@ -59,6 +59,21 @@ enum LabelaryError: Error {
     case emptyData
 }
 
+extension LabelaryError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .invalidDPmm:
+            return "Labelary only supports 6, 8, 12, or 24 dots/mm"
+        case .badURL:
+            return "Could not construct a valid Labelary request URL"
+        case let .httpError(status, body):
+            return "Labelary request failed with HTTP \(status): \(body)"
+        case .emptyData:
+            return "Labelary returned an empty response"
+        }
+    }
+}
+
 
 public func showImageInITerm2(data: Data) {
     // Base64-encode the image

@@ -57,7 +57,17 @@ public struct NetworkTarget: Target {
         let host = self.host
         let port = self.port
 
-        enum NetworkSendError: Error { case invalidPort, timeout, cancelled }
+        enum NetworkSendError: Error, LocalizedError {
+            case invalidPort, timeout, cancelled
+
+            var errorDescription: String? {
+                switch self {
+                case .invalidPort: return "Invalid target port"
+                case .timeout: return "Connection attempt timed out"
+                case .cancelled: return "Connection was cancelled"
+                }
+            }
+        }
         guard let nwPort = NWEndpoint.Port(rawValue: port) else { throw NetworkSendError.invalidPort }
 
         let conn = NWConnection(

@@ -8,11 +8,28 @@
 import Foundation
 import Security
 enum PreviewError: Error {
-    case helperNotFound
+    case helperNotFound(String)
     case cannotLaunch(String)
-    case noOutput
+    case noOutput(String)
     case badImageData
     case missingGeometry(String)
+}
+
+extension PreviewError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case let .helperNotFound(detail):
+            return "zpl2png helper not found: \(detail)"
+        case let .cannotLaunch(detail):
+            return "Could not run zpl2png helper: \(detail)"
+        case let .noOutput(detail):
+            return "zpl2png helper produced no output: \(detail)"
+        case .badImageData:
+            return "zpl2png helper produced data that isn't a valid image"
+        case let .missingGeometry(detail):
+            return "Missing render geometry: \(detail)"
+        }
+    }
 }
 
 func isSandboxed() -> Bool {
@@ -52,8 +69,7 @@ public struct ZPL2PNGRenderer: ImageRenderer {
     public init() throws {
         if isSandboxed() {
             guard let url = LabelKitResources.zpl2pngURL() else {
-                throw NSError(domain: "Engine", code: 1, userInfo: [NSLocalizedDescriptionKey:
-                                                                        "zpl2png not found in Contents/Helpers"])
+                throw PreviewError.helperNotFound("not found in Contents/Helpers")
             }
             self.helperURL = url
         } else {
@@ -66,9 +82,7 @@ public struct ZPL2PNGRenderer: ImageRenderer {
                 FileManager.default.isExecutableFile(atPath: $0.path) }) {
                 self.helperURL = url
             } else {
-                throw NSError(domain: "Engine", code: 2,
-                              userInfo: [NSLocalizedDescriptionKey:
-                                            "zpl2png not found in bundle or common system paths"])
+                throw PreviewError.helperNotFound("not found in bundle or common system paths")
             }
         }
     }
@@ -142,11 +156,8 @@ public struct ZPL2PNGRenderer: ImageRenderer {
         }
         catch {
             p.terminate()
-            throw NSError(
-                domain: "ZPL2PNG",
-                code: 3,
-                userInfo: [NSLocalizedDescriptionKey: "Failed to write ZPL data: \(error.localizedDescription)"]
-            )}
+            throw PreviewError.cannotLaunch("Failed to write ZPL data: \(error.localizedDescription)")
+        }
 
         let timeoutWorkItem = DispatchWorkItem { if p.isRunning { p.terminate() } }
         DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + options.timeout, execute: timeoutWorkItem)
@@ -159,7 +170,7 @@ public struct ZPL2PNGRenderer: ImageRenderer {
 
         if p.terminationStatus != 0 || stdoutData.isEmpty {
             let err = String(data: stderrData, encoding: .utf8) ?? ""
-            throw NSError(domain: "ZPL2PNG", code: Int(p.terminationStatus), userInfo: [NSLocalizedDescriptionKey: err])
+            throw PreviewError.noOutput("helper exited with status \(p.terminationStatus): \(err)")
         }
         return stdoutData
     }

@@ -14,6 +14,19 @@ enum PrintError: Error {
     case lengthOverflow(requested: Int, max: Int)
 }
 
+extension PrintError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case let .dpiMismatch(render, device):
+            return "Render DPI (\(render.rawValue)) doesn't match device DPI (\(device.rawValue))"
+        case let .widthOverflow(requested, max):
+            return "Requested width (\(requested) dots) exceeds device maximum of \(max) dots"
+        case let .lengthOverflow(requested, max):
+            return "Requested length (\(requested) dots) exceeds device maximum of \(max) dots"
+        }
+    }
+}
+
 /// A ZPLProcessor that resolves Stencil templates in the raw zpl from a StencilTemplateStore
 public struct ResolveTemplates: ZPLProcessor {
     private let templateStore: StencilTemplateStore
