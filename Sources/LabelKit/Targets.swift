@@ -8,7 +8,7 @@
 import Foundation
 @preconcurrency import Network
 
-public enum Payload {
+public enum Payload: Sendable {
     case zpl(String, dpi: DPI)      // carry the render DPI with the ZPL
     case png(Data, dpi: DPI)
 }
