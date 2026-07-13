@@ -78,7 +78,7 @@ struct ContentView: View {
 
     func printToPrinter() async throws {
         let zd620 = label.environment.options.device
-        let printer = NetworkTarget(device: zd620, host: "192.168.0.133", port: 9100)
+        let printer = NetworkTarget(device: zd620, host: PrinterDefaults.host, port: PrinterDefaults.port)
         try await printer.send(Payload.zpl(try label.zpl(), dpi: zd620.nativeDPI))
     }
     

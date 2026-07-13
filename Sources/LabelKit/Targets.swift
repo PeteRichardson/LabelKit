@@ -25,6 +25,12 @@ public protocol Target {
     func send(_ payload: Payload, strict: Bool) async throws
 }
 
+/// Shared default connection info for the example printer used by LabelCLI, ReminderList, and LabelGUI.
+public enum PrinterDefaults {
+    public static let host = "192.168.0.133"
+    public static let port: UInt16 = 9100
+}
+
 public struct NetworkTarget: Target {
     public let device: Device
     private let host: String
