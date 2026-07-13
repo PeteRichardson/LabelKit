@@ -15,6 +15,16 @@ private func zpl2pngHelperIsAvailable() -> Bool {
     (try? ZPL2PNGRenderer()) != nil
 }
 
+/// Reads pixel width/height from a PNG's IHDR chunk (bytes 16-19 and 20-23, big-endian).
+/// Used to verify runHelper's --width-mm/--height-mm math by checking the actual rendered
+/// output size, since the zpl2png binary's output pixel dimensions are width-mm * dpmm.
+private func pngDimensions(_ data: Data) -> (width: Int, height: Int)? {
+    guard data.count >= 24 else { return nil }
+    let width = data[16..<20].reduce(0) { ($0 << 8) | UInt32($1) }
+    let height = data[20..<24].reduce(0) { ($0 << 8) | UInt32($1) }
+    return (Int(width), Int(height))
+}
+
 @Suite("zpl2png free functions")
 struct ZPL2PNGHelperLookupTests {
 
@@ -122,5 +132,24 @@ struct ZPL2PNGRendererRenderTests {
         // A deadlocked render would consume the full 30s timeout; a healthy one finishes
         // in well under a second on this input size.
         #expect(elapsed < 10)
+    }
+
+    // Regression test for the mm-rounding bug: runHelper used to round dots -> inches to a
+    // whole number *before* converting to mm (`round(dots / dpi) * 25.4`), so a non-whole-inch
+    // dimension like 1.5in became 2in's worth of mm. 450 dots @ 300 dpi = 1.5in; the correct
+    // width is round(1.5in * 25.4) = 38mm, but the old formula produced round(1.5) * 25.4 =
+    // 50mm. At the zpl2png helper's dpmm of 12, that's a real, checkable difference in the
+    // rendered PNG's pixel width: 456px (correct) vs. 600px (buggy)
+    // (docs/reviews/code-review_src_2026-07-09.md HIGH #2, GitHub #29).
+    @Test func nonWholeInchDimensionsProduceCorrectPixelSize() async throws {
+        let geometry = RenderGeometry(dpi: 300, widthDots: 450, heightDots: 450)
+        let options = ImageRenderOptions(geometry: geometry, timeout: 10)
+
+        let renderer = try ZPL2PNGRenderer()
+        let data = try await renderer.render(from: "^XA^FO10,10^A0N,20,20^FDx^FS^XZ", options: options)
+
+        let dimensions = pngDimensions(data)
+        #expect(dimensions?.width == 456)
+        #expect(dimensions?.height == 456)
     }
 }
