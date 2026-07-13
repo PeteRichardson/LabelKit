@@ -12,12 +12,14 @@ public struct LabelaryRenderer: ImageRenderer {
     let session: URLSession = .shared
     public func render(from zpl: String, options: ImageRenderOptions) async throws -> Data {
         
-        let dpmm = Int(round(Double(options.geometry.dpi) / 25.4))  // e.g. 8 (203 dpi), 12 (300 dpi)
+        // Conversion routed through RenderGeometry's shared helpers (docs/reviews/
+        // PROJECT_REVIEW.md F6, GitHub #7), which zpl2png.swift now uses too.
+        let dpmm = options.geometry.dotsPerMillimeter  // e.g. 8 (203 dpi), 12 (300 dpi)
         let dpi = options.geometry.dpi
-        let wInches = max(1, (options.geometry.widthDots ?? dpi) ) // fallback 1"
-        let hInches = max(1, (options.geometry.heightDots ?? dpi) )
-        let widthInches = Double(wInches) / Double(dpi)
-        let heightInches = Double(hInches) / Double(dpi)
+        let wDots = max(1, (options.geometry.widthDots ?? dpi) ) // fallback 1"
+        let hDots = max(1, (options.geometry.heightDots ?? dpi) )
+        let widthInches = options.geometry.inches(fromDots: wDots)
+        let heightInches = options.geometry.inches(fromDots: hDots)
     
         let allowed = [6, 8, 12, 24]  // Labelary-supported DPmm
         guard allowed.contains(dpmm) else { throw LabelaryError.invalidDPmm }
