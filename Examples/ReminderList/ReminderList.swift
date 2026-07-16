@@ -61,9 +61,20 @@ struct List: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Print list as text on stdout",
     )
+
+    @Flag(name: .shortAndLong, help: "Enable debug logging to Console")
+    var debug: Bool = false
     
     func run() async throws {
-        for reminder in try await Reminders().getUncompleted() {
+        if debug {
+            logger.info("Fetching uncompleted reminders from Reminders.app")
+        }
+        let reminders = try await Reminders().getUncompleted()
+        if debug {
+            logger.info("Retrieved \(reminders.count) uncompleted reminder(s)")
+        }
+
+        for reminder in reminders {
             print(reminder.title)
         }
     }
@@ -73,14 +84,27 @@ struct Preview: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Print list as a png preview to stdout (requires iterm2 image support)",
     )
+
+    @Flag(name: .shortAndLong, help: "Enable debug logging to Console")
+    var debug: Bool = false
    
     var reminders: [ReminderSummary] = []
     
     func run() async throws {
+        if debug {
+            logger.info("Fetching uncompleted reminders from Reminders.app")
+        }
         let reminders = try await Reminders().getUncompleted()
+        if debug {
+            logger.info("Retrieved \(reminders.count) uncompleted reminder(s)")
+            logger.info("Generating ZPL label preview")
+        }
         let label = generate_label(reminders: reminders)
         let target = ITerm2Target(device: label.environment.options.device)
         try await label.preview(using: ZPL2PNGRenderer.self, to: target, timeout: 2.0, fallbackHeightDots: 500)
+        if debug {
+            logger.info("Preview command completed successfully")
+        }
     }
 }
 
@@ -135,17 +159,30 @@ struct Zpl: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Print ZPL for reminder list to stdout",
     )
+
+    @Flag(name: .shortAndLong, help: "Enable debug logging to Console")
+    var debug: Bool = false
     
     func run() async throws {
+        if debug {
+            logger.info("Fetching uncompleted reminders from Reminders.app")
+        }
         let reminders = try await Reminders().getUncompleted()
+        if debug {
+            logger.info("Retrieved \(reminders.count) uncompleted reminder(s)")
+            logger.info("Generating ZPL label")
+        }
         let label = generate_label(reminders: reminders)
-        
-        print(try label.zpl())
+        let zpl = try label.zpl()
+        if debug {
+            logger.info("Label generated, ZPL length: \(zpl.count) bytes")
+        }
+
+        print(zpl)
     }
 }
 
     
     
     
-
 
