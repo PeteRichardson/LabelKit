@@ -29,10 +29,14 @@ public struct Device : Hashable, Sendable {
     }
 }
 
-public enum DPI: Int, CaseIterable, Hashable, Sendable {
+public enum DPI: Int, CaseIterable, Hashable, Comparable, Sendable {
     case dpi203 = 203
     case dpi300 = 300
     case dpi600 = 600
+
+    // `<` is written out rather than left to Swift's synthesis, which orders by
+    // declaration order instead of rawValue.  Those agree today, but a case added
+    // out of order later would silently reorder comparisons.
     public static func < (lhs: DPI, rhs: DPI) -> Bool {
         lhs.rawValue < rhs.rawValue
     }
