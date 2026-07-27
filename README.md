@@ -234,12 +234,35 @@ StencilTemplateStore actually reads/writes. -->
 - **`LabelaryRenderer` needs internet** — it calls the
   [Labelary](https://labelary.com) web API. Use `ZPL2PNGRenderer` for offline
   previews.
-- **`InjectLength` doesn't yet validate against stock limits** — the estimated
-  `^LL` is injected without checking `Device.maxLengthDots` or the stock height.
+- **`InjectLength` checks the device but not the stock, and its check ignores
+  padding** — the estimate is validated against `Device.maxLengthDots`, but the
+  value actually injected is the estimate plus 150 dots. A label landing within
+  150 dots of the device maximum passes the check and still emits an over-long
+  `^LL`. Stock height is not checked at all.
+- **Length estimation parses a subset of ZPL** — `ZPLLengthEstimator` accounts
+  for `^FD` text, `^BC` barcodes and `^GB` boxes. Other barcode types and
+  graphics contribute nothing to the estimate, so `^LL` can come out short for
+  labels that use them.
 - **No print-job feedback** — `NetworkTarget` fires raw TCP at port 9100 and
-  does not read printer status back.
+  does not read printer status back. It surfaces connection failures and
+  timeouts, but never a paper-out, head-open, or job-rejected condition.
+- **Sandboxed apps must ship the helper** — a sandboxed process cannot execute
+  binaries outside its container, so `ZPL2PNGRenderer` skips the `$PATH` and
+  `/usr/local/bin` search steps when sandboxed. Bundle `zpl2png` in
+  `Contents/Helpers`, or pass it explicitly to `ZPL2PNGRenderer(helperURL:)`.
 
-<!-- 🖊 TODO: Review — partially inferred from source comments and platform requirements. -->
+### Known bugs
+
+Bugs are tracked as
+[GitHub issues](https://github.com/PeteRichardson/LabelKit/issues) — that
+tracker, not this list, is the current source of truth. `docs/reviews/PROJECT_REVIEW.md`
+records the audit those issues were filed from.
+
+The crash and correctness bugs raised by earlier review rounds are fixed: the
+force-unwrap on continuous stock (previews now throw
+`PreviewError.missingGeometry`), `^FD` content corruption in the formatter, the
+pipe deadlock on previews larger than the OS pipe buffer, and the defeated
+`NetworkTarget` connect timeout.
 
 ---
 
