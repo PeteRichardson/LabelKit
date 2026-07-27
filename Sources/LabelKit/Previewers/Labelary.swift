@@ -9,7 +9,10 @@ import Foundation
 
 public struct LabelaryRenderer: ImageRenderer {
 
-    let session: URLSession = .shared
+    /// The session used for every Labelary request. Injectable so callers can supply a
+    /// configured session (proxy, resource timeout, `URLProtocol` stub in tests).
+    public let session: URLSession
+
     public func render(from zpl: String, options: ImageRenderOptions) async throws -> Data {
         
         // Conversion routed through RenderGeometry's shared helpers (docs/reviews/
@@ -37,8 +40,11 @@ public struct LabelaryRenderer: ImageRenderer {
         request.httpMethod = "POST"
         request.setValue("image/PNG", forHTTPHeaderField: "Accept")
         request.httpBody = zpl.data(using: .utf8)
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
+        // `options.timeout` is the per-request idle timeout; without this the request would
+        // silently fall back to URLSession's 60s default (GitHub #32).
+        request.timeoutInterval = options.timeout
+
+        let (data, response) = try await session.data(for: request)
         
         guard let http = response as? HTTPURLResponse else { throw LabelaryError.emptyData }
         guard (200..<300).contains(http.statusCode) else {
@@ -49,7 +55,21 @@ public struct LabelaryRenderer: ImageRenderer {
         
         return data
     }
-    public init() {}
+    /// Creates a renderer that talks to Labelary over `URLSession.shared`.
+    public init() {
+        self.session = .shared
+    }
+
+    /// Creates a renderer that talks to Labelary over `session`.
+    ///
+    /// Per-request timeouts still come from ``ImageRenderOptions/timeout``; a custom session
+    /// is for policy that lives on the configuration instead — proxies, `timeoutIntervalForResource`,
+    /// `waitsForConnectivity`, or a `URLProtocol` stub in tests.
+    ///
+    /// - Parameter session: The session used for every Labelary request.
+    public init(session: URLSession) {
+        self.session = session
+    }
 }
 
 enum LabelaryError: Error, LocalizedError {

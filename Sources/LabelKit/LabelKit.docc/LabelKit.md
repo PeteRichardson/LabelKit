@@ -27,7 +27,7 @@ Core pieces include:
     - ``ZPLEnvironment`` / ``ZPLOptions``: Context and options passed to processors.
 
 - ``ImageRenderer``: A protocol for components that render ZPL into PNG
-    - ``LabelaryRenderer``: Renders ZPL to a PNG using the Labelary web API.
+    - ``LabelaryRenderer``: Renders ZPL to a PNG using the Labelary web API. Each request uses ``ImageRenderOptions/timeout`` as its timeout interval; ``LabelaryRenderer/init(session:)`` supplies a custom `URLSession` for configuration-level policy (proxies, resource timeouts, test stubs).
     - ``ZPL2PNGRenderer``: Renders ZPL to a PNG using ZPL2PNG helper tool embedded in LabelKit
 
 Other Types:
