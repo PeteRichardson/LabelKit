@@ -152,7 +152,9 @@ Two example executables ship with the package:
 | `example-reminderlist` | Prints your uncompleted Reminders.app items as a label on 4" continuous stock |
 
 ```sh
-swift run example-label
+swift run example-label                   # ZPL to stdout + iTerm2 previews
+swift run example-label --print           # ...and send it to the printer
+swift run example-label -d                # ...with debug logging to Console
 
 swift run example-reminderlist list       # reminder titles as text
 swift run example-reminderlist zpl        # generated ZPL to stdout
@@ -161,9 +163,28 @@ swift run example-reminderlist print      # send to network printer
 swift run example-reminderlist print -d   # ...with debug logging to Console
 ```
 
-Note: both examples hardcode a printer at `192.168.0.133:9100` — edit the
-source to point at yours. `example-reminderlist` will prompt for Reminders
-access on first run.
+Every subcommand takes `-d`/`--debug` to enable OSLog output to Console.
+
+### Choosing a printer
+
+Both examples default to a printer at `192.168.0.133:9100`. Override it with
+`--host`/`--port` on any command that talks to a printer:
+
+```sh
+swift run example-reminderlist print --host 10.0.1.42 --port 9100
+swift run example-label --print --host 10.0.1.42
+```
+
+or set the environment variables once:
+
+```sh
+export LABELKIT_PRINTER_HOST=10.0.1.42
+export LABELKIT_PRINTER_PORT=9100
+```
+
+Precedence is flag → environment variable → built-in default. No source edit
+or rebuild required. `example-reminderlist` will prompt for Reminders access
+on first run.
 
 There is also a SwiftUI app, **LabelGUI**, in `Apps/LabelGUI` (open
 `Apps/LabelGUI/LabelGUI.xcodeproj` or `Workspace/LabelWorkspace.xcworkspace`

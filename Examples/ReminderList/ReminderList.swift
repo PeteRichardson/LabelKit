@@ -5,12 +5,25 @@
 //  Created by Peter Richardson on 10/5/25.
 //
 
+import Foundation
 import LabelKit
 import ArgumentParser
 import OSLog
 
 // Logger for the ReminderList tool
 fileprivate let logger = Logger(subsystem: "com.example.reminderlist", category: "printing")
+
+/// Printer connection options.
+///
+/// Resolution order is flag → environment variable → ``PrinterDefaults``, so the
+/// example printer stays the default when nothing is supplied.
+struct PrinterOptions: ParsableArguments {
+    @Option(name: .long, help: "Printer hostname or IP address (env: LABELKIT_PRINTER_HOST)")
+    var host: String = ProcessInfo.processInfo.environment["LABELKIT_PRINTER_HOST"] ?? PrinterDefaults.host
+
+    @Option(name: .long, help: "Printer TCP port (env: LABELKIT_PRINTER_PORT)")
+    var port: UInt16 = ProcessInfo.processInfo.environment["LABELKIT_PRINTER_PORT"].flatMap(UInt16.init) ?? PrinterDefaults.port
+}
 
 public func generate_label(reminders: [ReminderSummary]) -> ZPLLabel {
     let fontSize = 50
@@ -51,6 +64,7 @@ public func generate_label(reminders: [ReminderSummary]) -> ZPLLabel {
 @main
 struct Todo : AsyncParsableCommand {
     static let configuration = CommandConfiguration(
+        commandName: "example-reminderlist",
         abstract: "Print a list of uncompleted reminders",
         subcommands: [List.self, Preview.self, Print.self, Zpl.self],
         defaultSubcommand: List.self // optional: default to `list` if no subcommand given
@@ -111,12 +125,14 @@ struct Preview: AsyncParsableCommand {
 
 struct Print: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        abstract: "Print list to network printer (at \(PrinterDefaults.host):\(PrinterDefaults.port))",
+        abstract: "Print list to network printer (defaults to \(PrinterDefaults.host):\(PrinterDefaults.port))",
     )
-    
+
+    @OptionGroup var printer: PrinterOptions
+
     @Flag(name: .shortAndLong, help: "Enable debug logging to Console")
     var debug: Bool = false
-    
+
     func run() async throws {
         if debug {
             logger.info("Starting print command")
@@ -140,14 +156,14 @@ struct Print: AsyncParsableCommand {
         }
 
         if debug {
-            logger.info("Connecting to printer at \(PrinterDefaults.host):\(PrinterDefaults.port)")
+            logger.info("Connecting to printer at \(printer.host):\(printer.port)")
         }
-        let printer = NetworkTarget(device: label.environment.options.device, host: PrinterDefaults.host, port: PrinterDefaults.port)
+        let target = NetworkTarget(device: label.environment.options.device, host: printer.host, port: printer.port)
 
         if debug {
             logger.info("Sending ZPL payload to printer")
         }
-        try await label.print(to: printer)
+        try await label.print(to: target)
 
         if debug {
             logger.info("Print command completed successfully")
