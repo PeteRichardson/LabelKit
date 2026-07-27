@@ -25,6 +25,31 @@ struct DPITests {
     @Test func allCasesContainsExactlyTheThreePresets() {
         #expect(Set(DPI.allCases) == [.dpi203, .dpi300, .dpi600])
     }
+
+    @Test func sortsAscendingByResolution() {
+        #expect([DPI.dpi600, .dpi203, .dpi300].sorted() == [.dpi203, .dpi300, .dpi600])
+    }
+
+    @Test func supportsMinAndMax() {
+        #expect(max(DPI.dpi203, .dpi600) == .dpi600)
+        #expect(min(DPI.dpi300, .dpi203) == .dpi203)
+        #expect(DPI.allCases.max() == .dpi600)
+        #expect(DPI.allCases.min() == .dpi203)
+    }
+
+    @Test func formsRangesOverResolutions() {
+        let range = DPI.dpi203 ... DPI.dpi600
+        #expect(range.contains(.dpi300))
+        #expect(range.contains(.dpi203))
+        #expect(range.contains(.dpi600))
+        #expect(!(DPI.dpi203 ..< DPI.dpi600).contains(.dpi600))
+    }
+
+    @Test func derivedComparisonOperatorsFollowRawValue() {
+        #expect(DPI.dpi600 > .dpi203)
+        #expect(DPI.dpi300 <= .dpi300)
+        #expect(DPI.dpi300 >= .dpi203)
+    }
 }
 
 @Suite("Device")

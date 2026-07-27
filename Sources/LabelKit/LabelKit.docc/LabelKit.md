@@ -32,7 +32,7 @@ Core pieces include:
 
 Other Types:
 - ``ZPLRepresentable``: Protocol for types that can produce ZPL on demand.
-- ``DPI``: The printer resolution used when converting inches to dots.
+- ``DPI``: The printer resolution used when converting inches to dots.  `Comparable`, ordered by resolution, so resolutions can be sorted, ranged and compared with `min`/`max`.
 - ``ZPLLengthEstimator``: Estimates ZPL label length (in dots) by walking commands.
 
 ## Getting Started
