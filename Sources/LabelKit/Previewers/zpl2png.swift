@@ -48,16 +48,33 @@ func isSandboxed() -> Bool {
 }
 // MARK: - zpl2png (local helper in Contents/Helpers)
 
-func lookupInPath(named name: String) -> URL? {
-    let fm = FileManager.default
-    guard let pathEnv = ProcessInfo.processInfo.environment["PATH"] else { return nil }
+/// Searches the `PATH` entries of `environment` for an executable named `name`.
+///
+/// Takes the environment as a parameter (rather than always reading `ProcessInfo`) so the
+/// search order can be exercised deterministically from tests.
+func lookupInPath(
+    named name: String,
+    environment: [String: String] = ProcessInfo.processInfo.environment
+) -> URL? {
+    guard let pathEnv = environment["PATH"] else { return nil }
     for dir in pathEnv.split(separator: ":") {
         let candidate = URL(fileURLWithPath: String(dir)).appendingPathComponent(name)
-        if fm.isExecutableFile(atPath: candidate.path) {
+        if isExecutableFile(candidate) {
             return candidate
         }
     }
     return nil
+}
+
+/// True when `url` names an existing, executable regular file (not a directory, which
+/// `FileManager.isExecutableFile(atPath:)` happily reports as executable).
+func isExecutableFile(_ url: URL) -> Bool {
+    let fm = FileManager.default
+    var isDirectory: ObjCBool = false
+    guard fm.fileExists(atPath: url.path, isDirectory: &isDirectory), !isDirectory.boolValue else {
+        return false
+    }
+    return fm.isExecutableFile(atPath: url.path)
 }
 
 public enum LabelKitResources {
@@ -68,44 +85,141 @@ public enum LabelKitResources {
 
 
 public struct ZPL2PNGRenderer: ImageRenderer {
-    
+
+    /// Name of the environment variable that overrides which `zpl2png` binary is used.
+    ///
+    /// Set it to an absolute path to point LabelKit at a specific helper build from the
+    /// shell; the programmatic equivalent is ``init(helperURL:)``.
+    public static let helperOverrideEnvironmentVariable = "LABELKIT_ZPL2PNG"
+
+    /// Blocking `Process` work (`write`, `waitUntilExit`, `readDataToEndOfFile`) must not run
+    /// on Swift's cooperative thread pool: those threads are a fixed, small resource and
+    /// blocking them starves unrelated tasks. `render` hands the work to this queue instead
+    /// (docs/reviews/code-review_src_2026-07-09.md CR-9, GitHub #33). It is concurrent so
+    /// simultaneous renders don't serialize behind each other.
+    private static let helperQueue = DispatchQueue(
+        label: "com.labelkit.zpl2png.helper",
+        qos: .userInitiated,
+        attributes: .concurrent
+    )
+
     var helperURL: URL
-    
+
+    /// Creates a renderer, locating the `zpl2png` helper automatically.
+    ///
+    /// See ``resolveHelperURL(explicitHelperURL:environment:sandboxed:)`` for the search order.
+    ///
+    /// - Throws: ``PreviewError/helperNotFound(_:)`` if no executable helper can be found.
     public init() throws {
-        if isSandboxed() {
-            guard let url = LabelKitResources.zpl2pngURL() else {
-                throw PreviewError.helperNotFound("not found in Contents/Helpers")
-            }
-            self.helperURL = url
-        } else {
-            let candidates: [URL?] = [
-                Bundle.main.url(forAuxiliaryExecutable: "zpl2png"),
-                URL(fileURLWithPath: "/Users/pete/bin/zpl2png"),
-                URL(fileURLWithPath: "/usr/local/bin/zpl2png")
-            ]
-            if let url = candidates.compactMap({ $0 }).first(where: {
-                FileManager.default.isExecutableFile(atPath: $0.path) }) {
-                self.helperURL = url
-            } else {
-                throw PreviewError.helperNotFound("not found in bundle or common system paths")
-            }
-        }
+        try self.init(explicitHelperURL: nil)
     }
-    
+
+    /// Creates a renderer that uses a specific `zpl2png` binary.
+    ///
+    /// Use this when you ship or build your own helper and don't want LabelKit guessing —
+    /// it takes precedence over `$LABELKIT_ZPL2PNG` and every automatic search location.
+    ///
+    /// - Parameter helperURL: File URL of the helper executable.
+    /// - Throws: ``PreviewError/helperNotFound(_:)`` if `helperURL` isn't an executable file.
+    public init(helperURL: URL) throws {
+        try self.init(explicitHelperURL: helperURL)
+    }
+
+    /// Designated initializer. The environment and sandbox flag are parameters so tests can
+    /// drive resolution without mutating process-wide state.
+    init(
+        explicitHelperURL: URL?,
+        environment: [String: String] = ProcessInfo.processInfo.environment,
+        sandboxed: Bool = isSandboxed()
+    ) throws {
+        self.helperURL = try Self.resolveHelperURL(
+            explicitHelperURL: explicitHelperURL,
+            environment: environment,
+            sandboxed: sandboxed
+        )
+    }
+
+    /// Resolves which `zpl2png` binary to run, in this order:
+    ///
+    /// 1. `explicitHelperURL` (from ``init(helperURL:)``)
+    /// 2. `$LABELKIT_ZPL2PNG`
+    /// 3. `Bundle.main`'s auxiliary executable, for apps shipping the helper in
+    ///    `Contents/Helpers`
+    /// 4. `zpl2png` on `$PATH`
+    /// 5. `/usr/local/bin/zpl2png`
+    /// 6. the copy bundled with the LabelKit package itself
+    ///
+    /// A sandboxed process can't execute anything outside its container, so when `sandboxed`
+    /// is true steps 4 and 5 are skipped; only the two overrides and the two in-bundle
+    /// locations apply.
+    ///
+    /// The overrides are checked before anything else and are hard failures when they point
+    /// at something unusable: silently falling back to a different binary would hide a typo'd
+    /// path. Everything else is a best-effort search, so non-matches just fall through.
+    static func resolveHelperURL(
+        explicitHelperURL: URL?,
+        environment: [String: String] = ProcessInfo.processInfo.environment,
+        sandboxed: Bool = isSandboxed()
+    ) throws -> URL {
+        if let explicitHelperURL {
+            guard isExecutableFile(explicitHelperURL) else {
+                throw PreviewError.helperNotFound(
+                    "\(explicitHelperURL.path) (passed to init(helperURL:)) is not an executable file"
+                )
+            }
+            return explicitHelperURL
+        }
+
+        if let override = environment[helperOverrideEnvironmentVariable], !override.isEmpty {
+            let url = URL(fileURLWithPath: override)
+            guard isExecutableFile(url) else {
+                throw PreviewError.helperNotFound(
+                    "\(url.path) (from $\(helperOverrideEnvironmentVariable)) is not an executable file"
+                )
+            }
+            return url
+        }
+
+        // A sandboxed process can only execute what's inside its container, so it skips the
+        // system locations entirely; LabelKit's own bundled copy is the last resort either way.
+        let systemLocations: [URL?] = sandboxed ? [] : [
+            lookupInPath(named: "zpl2png", environment: environment),
+            URL(fileURLWithPath: "/usr/local/bin/zpl2png")
+        ]
+        let candidates: [URL?] =
+            [Bundle.main.url(forAuxiliaryExecutable: "zpl2png")]
+            + systemLocations
+            + [LabelKitResources.zpl2pngURL()]
+
+        guard let url = candidates.compactMap({ $0 }).first(where: isExecutableFile) else {
+            let searched = sandboxed
+                ? "in the app bundle (a sandboxed process can't execute binaries outside its container)"
+                : "in the app bundle, on $PATH, in /usr/local/bin, or among LabelKit's bundled resources"
+            throw PreviewError.helperNotFound(
+                "no executable zpl2png found \(searched). Set "
+                + "$\(helperOverrideEnvironmentVariable) or pass one to ZPL2PNGRenderer(helperURL:)."
+            )
+        }
+        return url
+    }
+
     public func render(from zpl: String, options: ImageRenderOptions) async throws -> Data {
-        return try await withCheckedThrowingContinuation { cont in
-            Task {
-                do {
-                    let data = try runHelper(helperURL: helperURL, zpl: zpl, options: options)
-                    cont.resume(returning: data)
-                } catch {
-                    cont.resume(throwing: error)
-                }
+        let helperURL = self.helperURL
+        return try await withCheckedThrowingContinuation { continuation in
+            // The continuation now earns its keep: it bridges from the cooperative pool to a
+            // thread that is allowed to block, instead of wrapping a `Task` that was already
+            // on the pool it was trying to leave.
+            Self.helperQueue.async {
+                continuation.resume(with: Result {
+                    try Self.runHelper(helperURL: helperURL, zpl: zpl, options: options)
+                })
             }
         }
     }
-    
-    private func runHelper(helperURL: URL, zpl: String, options: ImageRenderOptions) throws -> Data {
+
+    /// Runs the helper synchronously. Callers must be on ``helperQueue`` (or another thread
+    /// that may block) — never on the cooperative pool.
+    private static func runHelper(helperURL: URL, zpl: String, options: ImageRenderOptions) throws -> Data {
         let p = Process()
         p.executableURL = helperURL
         var args: [String] = []
@@ -145,17 +259,17 @@ public struct ZPL2PNGRenderer: ImageRenderer {
         // the OS pipe buffer (~64KB) writing its PNG: it blocks in write() and never exits,
         // so the old poll loop just timed out waiting for a stuck process instead of a
         // finished one (docs/reviews/code-review_src_2026-07-09.md HIGH #3, GitHub #30).
-        nonisolated(unsafe) var stdoutData = Data()
-        nonisolated(unsafe) var stderrData = Data()
+        let stdoutData = DataBox()
+        let stderrData = DataBox()
         let readGroup = DispatchGroup()
         readGroup.enter()
         DispatchQueue.global(qos: .utility).async {
-            stdoutData = outPipe.fileHandleForReading.readDataToEndOfFile()
+            stdoutData.value = outPipe.fileHandleForReading.readDataToEndOfFile()
             readGroup.leave()
         }
         readGroup.enter()
         DispatchQueue.global(qos: .utility).async {
-            stderrData = errPipe.fileHandleForReading.readDataToEndOfFile()
+            stderrData.value = errPipe.fileHandleForReading.readDataToEndOfFile()
             readGroup.leave()
         }
 
@@ -177,14 +291,28 @@ public struct ZPL2PNGRenderer: ImageRenderer {
         // waitUntilExit() above already waited for; this just synchronizes with them.
         readGroup.wait()
 
+        let out = stdoutData.value
         if p.terminationStatus != 0 {
-            let err = String(data: stderrData, encoding: .utf8) ?? ""
+            let err = String(data: stderrData.value, encoding: .utf8) ?? ""
             throw PreviewError.helperFailed(status: p.terminationStatus, stderr: err)
         }
-        guard !stdoutData.isEmpty else {
+        guard !out.isEmpty else {
             throw PreviewError.noOutput
         }
-        return stdoutData
+        return out
     }
-    
+
+}
+
+/// A lock-protected `Data` box, so the background pipe drains can hand their bytes back to
+/// `runHelper` without capturing `nonisolated(unsafe)` mutable locals in a `@Sendable`
+/// closure — an escape hatch that asserts safety rather than providing it.
+private final class DataBox: @unchecked Sendable {
+    private let lock = NSLock()
+    private var storage = Data()
+
+    var value: Data {
+        get { lock.withLock { storage } }
+        set { lock.withLock { storage = newValue } }
+    }
 }
