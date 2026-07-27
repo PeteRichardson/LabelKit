@@ -43,3 +43,29 @@ Other Types:
 import LabelKit
 
 let device = Device.Preset.ZD620
+```
+
+### Choosing the zpl2png helper
+
+``ZPL2PNGRenderer`` shells out to a `zpl2png` binary. `ZPL2PNGRenderer()` finds one by
+searching, in order: the `LABELKIT_ZPL2PNG` environment variable, the host app's
+`Contents/Helpers`, `$PATH`, `/usr/local/bin`, and finally the copy bundled with the LabelKit
+package. A sandboxed app can only reach `Contents/Helpers` or an explicit override.
+
+Point it at a specific build programmatically:
+
+```swift
+let renderer = try ZPL2PNGRenderer(
+    helperURL: URL(fileURLWithPath: "/opt/zpl2png/bin/zpl2png")
+)
+```
+
+…or from the shell:
+
+```sh
+LABELKIT_ZPL2PNG=/opt/zpl2png/bin/zpl2png swift run example-label
+```
+
+Both overrides take precedence over every automatic search location, and both throw
+``PreviewError/helperNotFound(_:)`` when the path isn't an executable file — a mistyped
+override is reported rather than quietly replaced by whichever helper happens to be installed.
