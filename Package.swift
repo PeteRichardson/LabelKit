@@ -31,7 +31,10 @@ let package = Package(
         .testTarget(name: "LabelKitTests", dependencies: ["LabelKit"]),
         .executableTarget(
             name: "LabelCLI",
-            dependencies: ["LabelKit"],
+            dependencies: [
+                "LabelKit",
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ],
             path: "Examples/LabelCLI"
         ),
         .executableTarget(
