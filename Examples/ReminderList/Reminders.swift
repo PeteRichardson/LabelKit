@@ -16,6 +16,28 @@ public struct ReminderSummary: Sendable, Equatable, Decodable {
     public let isCompleted: Bool
 }
 
+extension Array where Element == ReminderSummary {
+    /// Sorts reminders into EventKit priority order: 1 (highest) through 9
+    /// (lowest), with 0 — meaning "no priority" — last.
+    ///
+    /// The original index breaks ties, since `sorted(by:)` is not guaranteed
+    /// stable and equal priorities are the common case (Reminders.app only
+    /// ever assigns 0, 1, 5 or 9).
+    public func sortedByPriority() -> [ReminderSummary] {
+        // Unprioritized reminders sort to the end rather than the front.
+        func rank(_ reminder: ReminderSummary) -> Int {
+            reminder.priority == 0 ? Int.max : reminder.priority
+        }
+
+        return enumerated()
+            .sorted { lhs, rhs in
+                let left = rank(lhs.element), right = rank(rhs.element)
+                return left == right ? lhs.offset < rhs.offset : left < right
+            }
+            .map(\.element)
+    }
+}
+
 public enum ReminderError: Error {
     case accessDenied
 }

@@ -83,7 +83,7 @@ struct List: AsyncParsableCommand {
         if debug {
             logger.info("Fetching uncompleted reminders from Reminders.app")
         }
-        let reminders = try await Reminders().getUncompleted()
+        let reminders = try await Reminders().getUncompleted().sortedByPriority()
         if debug {
             logger.info("Retrieved \(reminders.count) uncompleted reminder(s)")
         }
@@ -101,14 +101,12 @@ struct Preview: AsyncParsableCommand {
 
     @Flag(name: .shortAndLong, help: "Enable debug logging to Console")
     var debug: Bool = false
-   
-    var reminders: [ReminderSummary] = []
-    
+
     func run() async throws {
         if debug {
             logger.info("Fetching uncompleted reminders from Reminders.app")
         }
-        let reminders = try await Reminders().getUncompleted()
+        let reminders = try await Reminders().getUncompleted().sortedByPriority()
         if debug {
             logger.info("Retrieved \(reminders.count) uncompleted reminder(s)")
             logger.info("Generating ZPL label preview")
@@ -141,7 +139,7 @@ struct Print: AsyncParsableCommand {
         if debug {
             logger.info("Fetching uncompleted reminders from Reminders.app")
         }
-        let reminders = try await Reminders().getUncompleted()
+        let reminders = try await Reminders().getUncompleted().sortedByPriority()
         if debug {
             logger.info("Retrieved \(reminders.count) uncompleted reminder(s)")
         }
@@ -183,7 +181,7 @@ struct Zpl: AsyncParsableCommand {
         if debug {
             logger.info("Fetching uncompleted reminders from Reminders.app")
         }
-        let reminders = try await Reminders().getUncompleted()
+        let reminders = try await Reminders().getUncompleted().sortedByPriority()
         if debug {
             logger.info("Retrieved \(reminders.count) uncompleted reminder(s)")
             logger.info("Generating ZPL label")
