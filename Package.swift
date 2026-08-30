@@ -7,7 +7,8 @@ let package = Package(
     products: [
         .library(name: "LabelKit", targets: ["LabelKit"]),
         .executable(name: "example-label", targets: ["LabelCLI"]),
-        .executable(name: "example-reminderlist", targets: ["ReminderList"])
+        .executable(name: "example-reminderlist", targets: ["ReminderList"]),
+        .executable(name: "example-listlabel", targets: ["ListLabel"])
     ],
     dependencies: [
         .package(
@@ -45,6 +46,14 @@ let package = Package(
             ],
             path: "Examples/ReminderList",
             sources: ["ReminderList.swift", "Reminders.swift"]
+        ),
+        .executableTarget(
+            name: "ListLabel",
+            dependencies: [
+                "LabelKit",
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ],
+            path: "Examples/ListLabel"
         )
     ]
 )
