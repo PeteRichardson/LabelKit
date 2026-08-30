@@ -13,9 +13,12 @@ swift build                  # build library + example executables
 swift test                   # run all tests (uses Swift Testing, not XCTest)
 swift test --filter ZPLLabelTests            # run one suite
 swift test --filter ZPLLabelTests/initialRenderWithContext   # run one test
-swift run example-label      # LabelCLI example
+swift run PrintToStdout       # Tier 1 tutorial snippet
+swift run PrintAList          # Tier 1 tutorial snippet
+cat list.txt | swift run labelprint print|preview|zpl|list   # Tier 2: labelprint (stdin)
 swift run example-reminderlist zpl|preview|print|list        # ReminderList example
-cat list.txt | swift run example-listlabel print|preview|zpl # ListLabel example (stdin)
+swift run batch-badges        # Tier 3: template + CSV -> N labels
+cat list.txt | swift run labelprint zpl | swift run compare-renderers  # Tier 3
 ./Scripts/generate_docs.sh   # generate docs with jazzy
 ```
 

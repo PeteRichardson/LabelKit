@@ -144,44 +144,77 @@ visual for this project.
 
 ## Examples
 
-Three example executables ship with the package:
+Examples are organized in three tiers, from smallest to most complete:
+
+**Tier 1 — tutorial snippets** (`Snippets/`): single-file, single-concept
+programs. Read the source; each one demonstrates exactly one idea.
+
+| Snippet | Demonstrates |
+|---------|--------------|
+| `PrintToStdout` | The smallest end-to-end pipeline: build a label, pick a target, deliver it |
+| `ChooseStockAndDevice` | Combining `Stock` (inches) and `Device` (DPI) into render geometry |
+| `PrintAList` | Laying a sequence of `ListLine` values out with `ListLayout` |
+| `RenderATemplate` | Filling a Stencil template with values via `StencilTemplateStore` |
+| `PreviewInITerm2` | Rendering ZPL to PNG and showing it inline in iTerm2 |
+
+```sh
+swift run PrintToStdout
+swift run ChooseStockAndDevice
+swift run PrintAList
+swift run RenderATemplate
+swift run PreviewInITerm2
+```
+
+**Tier 2 — `labelprint`** (`Examples/labelprint/`): reads lines of text on
+stdin and prints them as one long list label via `ListLayout`; lines ending in
+`:` become section headers and blank lines become gaps.
+
+```sh
+cat list.txt | swift run labelprint          # send to network printer (default)
+cat list.txt | swift run labelprint preview  # PNG preview inline in iTerm2
+cat list.txt | swift run labelprint zpl      # generated ZPL to stdout
+cat list.txt | swift run labelprint list     # echo parsed lines, for debugging headers/gaps
+```
+
+`labelprint` defaults to its `print` subcommand, so a bare pipe goes straight
+to the printer. Every subcommand takes `-d`/`--debug` to enable OSLog output
+to Console.
+
+**Tier 3 — advanced examples** (`Examples/Advanced/`): multi-feature programs
+that combine several parts of LabelKit.
 
 | Executable | Description |
 |------------|-------------|
-| `example-label` | Loads a Stencil template from the template store, prints the processed ZPL to stdout, and renders iTerm2 previews via both Labelary and zpl2png |
-| `example-reminderlist` | Prints your uncompleted Reminders.app items as a label on 4" continuous stock |
-| `example-listlabel` | Reads lines of text on stdin and prints them as one long list label; lines ending in `:` become section headers and blank lines become gaps |
+| `batch-badges` | Renders one badge label per row of a CSV, from a single Stencil template |
+| `compare-renderers` | Renders ZPL from stdin through both Labelary and zpl2png, side by side |
 
 ```sh
-swift run example-label                   # ZPL to stdout + iTerm2 previews
-swift run example-label --print           # ...and send it to the printer
-swift run example-label -d                # ...with debug logging to Console
+swift run batch-badges                                  # template + CSV -> N labels
+cat list.txt | swift run labelprint zpl | swift run compare-renderers
+```
 
+There is also a standalone example not part of the tiers above:
+
+| Executable | Description |
+|------------|-------------|
+| `example-reminderlist` | Prints your uncompleted Reminders.app items as a label on 4" continuous stock |
+
+```sh
 swift run example-reminderlist list       # reminder titles as text
 swift run example-reminderlist zpl        # generated ZPL to stdout
 swift run example-reminderlist preview    # PNG preview inline in iTerm2
 swift run example-reminderlist print      # send to network printer
 swift run example-reminderlist print -d   # ...with debug logging to Console
-
-cat shopping.txt | swift run example-listlabel          # send to network printer
-cat shopping.txt | swift run example-listlabel preview  # PNG preview inline in iTerm2
-cat shopping.txt | swift run example-listlabel zpl      # generated ZPL to stdout
 ```
-
-`example-listlabel` defaults to its `print` subcommand, so a bare pipe goes
-straight to the printer.
-
-Every subcommand takes `-d`/`--debug` to enable OSLog output to Console.
 
 ### Choosing a printer
 
-All three examples default to a printer at `192.168.0.133:9100`. Override it with
-`--host`/`--port` on any command that talks to a printer:
+Executables that talk to a printer default to `192.168.0.133:9100`. Override
+it with `--host`/`--port`:
 
 ```sh
-swift run example-reminderlist print --host 10.0.1.42 --port 9100
-swift run example-label --print --host 10.0.1.42
-cat shopping.txt | swift run example-listlabel print --host 10.0.1.42
+cat list.txt | swift run labelprint print --host 10.0.1.42 --port 9100
+swift run example-reminderlist print --host 10.0.1.42
 ```
 
 or set the environment variables once:
@@ -203,8 +236,8 @@ in Xcode).
 
 ## Configuration
 
-`StencilTemplateStore` (used by `example-label` and available to your own
-code) reads named templates from:
+`StencilTemplateStore` (used by the `RenderATemplate` snippet, `batch-badges`,
+and available to your own code) reads named templates from:
 
 ```
 ~/Library/Application Support/LabelKit/templates.json

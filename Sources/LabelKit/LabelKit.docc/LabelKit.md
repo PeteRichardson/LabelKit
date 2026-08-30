@@ -21,8 +21,8 @@ Core pieces include:
     - ``FileTarget``: can save ZPL or a rendered ZPL PNG in a file
 
 - ``ZPLProcessor``: A protocol for components that transform ZPL prior to output
-    - ``StencilProcessor``: a processor to resolve Swift-Stencil Template to generate ZPL
-    - LengthInjector: a processor to inject an estimated length (^LL) into a ZPL string
+    - ``ResolveTemplates``: a processor to resolve Swift-Stencil templates to generate ZPL
+    - ``InjectLength``: a processor to inject an estimated length (^LL) into a ZPL string
     - ``ZPLFormatter``: a processor to pretty‑print or minify ZPL
     - ``ZPLEnvironment`` / ``ZPLOptions``: Context and options passed to processors.
 
@@ -34,6 +34,7 @@ Other Types:
 - ``ZPLRepresentable``: Protocol for types that can produce ZPL on demand.
 - ``DPI``: The printer resolution used when converting inches to dots.  `Comparable`, ordered by resolution, so resolutions can be sorted, ranged and compared with `min`/`max`.
 - ``ZPLLengthEstimator``: Estimates ZPL label length (in dots) by walking commands.
+- ``ListLayout``: Lays a sequence of ``ListLine`` values out as a single long label.
 
 ## Getting Started
 
@@ -63,7 +64,7 @@ let renderer = try ZPL2PNGRenderer(
 …or from the shell:
 
 ```sh
-LABELKIT_ZPL2PNG=/opt/zpl2png/bin/zpl2png swift run example-label
+LABELKIT_ZPL2PNG=/opt/zpl2png/bin/zpl2png swift run labelprint
 ```
 
 Both overrides take precedence over every automatic search location, and both throw
