@@ -64,6 +64,11 @@ struct BatchBadges: AsyncParsableCommand {
         guard let header = lines.first else { return [] }
         let keys = header.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
 
+        var seenKeys = Set<String>()
+        for key in keys where !seenKeys.insert(key).inserted {
+            throw ValidationError("Duplicate column '\(key)' in CSV header.")
+        }
+
         return lines.dropFirst().map { line in
             let values = line.split(separator: ",", omittingEmptySubsequences: false)
                 .map { $0.trimmingCharacters(in: .whitespaces) }
