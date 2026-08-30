@@ -26,6 +26,16 @@ public final class StencilTemplateStore: Loader {
         self.fileURL = file
     }
 
+    /// Initializes a store backed by an explicit file, bypassing the
+    /// Application Support / group-container search performed by `init()`.
+    ///
+    /// Used by examples and snippets so they read templates checked into the
+    /// repository and run on a fresh clone with no user state. Apps that want
+    /// the user's own template store should keep using `init()`.
+    public init(fileURL: URL) {
+        self.fileURL = fileURL
+    }
+
     private static func findFirstExistingJSON(
         filename: String,
         folderNames: [String],
