@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "templates": {
+    "label": "^XA^PW600^LL354\n^FO10,30^A0N,30,30^FDHeader^FS\n^FO10,80^A0N,24,24^FD{{ line1 }}^FS\n^FO10,120^A0N,24,24^FD{{ line2 }}^FS\n^XZ",
+    "badge": "^XA^PW600^LL354\n^FO20,40^A0N,40,40^FD{{ name }}^FS\n^FO20,100^A0N,24,24^FD{{ title }}^FS\n^XZ"
+  }
+}
