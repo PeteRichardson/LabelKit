@@ -36,4 +36,21 @@ struct ParseLinesTests {
     @Test func emptyInputYieldsNoLines() {
         #expect(parseLines("") == [])
     }
+
+    @Test func crlfHeaderLineIsClassifiedAsHeader() {
+        #expect(parseLines("Costco:\r\n") == [.header("Costco:")])
+    }
+
+    @Test func crlfDocumentParsesSameAsItsLFEquivalent() {
+        let lf = "Costco:\neggs\n\nDraegers:\nmilk\n"
+        let crlf = "Costco:\r\neggs\r\n\r\nDraegers:\r\nmilk\r\n"
+        #expect(parseLines(crlf) == parseLines(lf))
+        #expect(parseLines(crlf) == [
+            .header("Costco:"), .item("eggs"), .blank, .header("Draegers:"), .item("milk"),
+        ])
+    }
+
+    @Test func loneCarriageReturnLineEndingsAlsoSplit() {
+        #expect(parseLines("a\rb\rc") == [.item("a"), .item("b"), .item("c")])
+    }
 }

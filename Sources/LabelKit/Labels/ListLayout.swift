@@ -34,7 +34,10 @@ public struct ListLayout: Sendable {
     /// Trailing blank media the ZD620 needs to clear its cutter at 300 dpi.
     /// Empirically determined; not a style choice.
     public var bottomMargin: Int
-    public var printWidthDots: Int
+    /// `^PW` override. An explicit value wins; `nil` (the default) derives the
+    /// width from the environment's `RenderGeometry` instead, so the emitted
+    /// `^PW` agrees with the geometry `makeLabel` publishes for previewers.
+    public var printWidthDots: Int?
 
     public init(
         headerFontSize: Int = 60,
@@ -44,7 +47,7 @@ public struct ListLayout: Sendable {
         itemIndent: Int = 100,
         topMargin: Int = 20,
         bottomMargin: Int = 318,
-        printWidthDots: Int = 1200
+        printWidthDots: Int? = nil
     ) {
         self.headerFontSize = headerFontSize
         self.itemFontSize = itemFontSize
@@ -80,10 +83,11 @@ public struct ListLayout: Sendable {
         // y is the last baseline; the cutter needs clearance past it.
         let length = y + bottomMargin
         let body = rows.joined(separator: "\n")
+        let width = printWidthDots ?? environment.options.geometry.widthDots ?? 1200
 
         // ^LH/^LS persist in printer configuration between jobs, so zero them
         // explicitly rather than inheriting whatever the last job left behind.
-        let zpl = "^XA^PW\(printWidthDots)^LH0,0^LS0^LL\(length)\(body)^XZ"
+        let zpl = "^XA^PW\(width)^LH0,0^LS0^LL\(length)\(body)^XZ"
 
         var environment = environment
         environment.options.geometry.heightDots = length

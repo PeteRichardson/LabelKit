@@ -66,4 +66,18 @@ struct ListLayoutTests {
         let zpl = try layout.makeLabel([.item("small")], environment: environment).zpl()
         #expect(zpl.contains("^A0N,30,30^FO40,60^FDsmall^FS"))   // 20 + 30 + 10
     }
+
+    @Test func printWidthIsDerivedFromTheEnvironmentByDefault() throws {
+        let narrowEnvironment = ZPLEnvironment(stock: Stock.Preset.label2x1, device: Device.Preset.ZD620)
+        let zpl = try ListLayout().makeLabel([.item("eggs")], environment: narrowEnvironment).zpl()
+        #expect(zpl.contains("^PW600"))
+    }
+
+    @Test func explicitPrintWidthOverridesTheEnvironment() throws {
+        var layout = ListLayout()
+        layout.printWidthDots = 800
+        let narrowEnvironment = ZPLEnvironment(stock: Stock.Preset.label2x1, device: Device.Preset.ZD620)
+        let zpl = try layout.makeLabel([.item("eggs")], environment: narrowEnvironment).zpl()
+        #expect(zpl.contains("^PW800"))
+    }
 }

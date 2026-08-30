@@ -30,9 +30,9 @@ struct PrinterOptions: ParsableArguments {
 /// pipe against, which is why it lives here rather than in LabelKit.
 func parseLines(_ text: String) -> [ListLine] {
     var lines = text
-        .split(separator: "\n", omittingEmptySubsequences: false)
+        .split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
         .map { line -> ListLine in
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
             if trimmed.isEmpty { return .blank }
             if trimmed.hasSuffix(":") { return .header(trimmed) }
             return .item(trimmed)

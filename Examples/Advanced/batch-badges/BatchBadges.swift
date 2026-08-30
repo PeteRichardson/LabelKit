@@ -69,9 +69,14 @@ struct BatchBadges: AsyncParsableCommand {
             throw ValidationError("Duplicate column '\(key)' in CSV header.")
         }
 
-        return lines.dropFirst().map { line in
+        return try lines.dropFirst().enumerated().map { index, line in
             let values = line.split(separator: ",", omittingEmptySubsequences: false)
                 .map { $0.trimmingCharacters(in: .whitespaces) }
+            guard values.count == keys.count else {
+                // +2: 1-based, plus the header row itself.
+                throw ValidationError(
+                    "Row \(index + 2) has \(values.count) field(s), expected \(keys.count) to match the header.")
+            }
             return Dictionary(uniqueKeysWithValues: zip(keys, values))
         }
     }

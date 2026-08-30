@@ -77,7 +77,8 @@ struct CompareRenderers: AsyncParsableCommand {
     /// Reads the width/height from a PNG's IHDR chunk (big-endian `UInt32`s at
     /// byte offsets 16 and 20) without pulling in an image framework.
     private static func pngDimensions(_ data: Data) -> (width: Int, height: Int)? {
-        guard data.count >= 24 else { return nil }
+        let signature: [UInt8] = [137, 80, 78, 71, 13, 10, 26, 10]
+        guard data.count >= 24, [UInt8](data.prefix(8)) == signature else { return nil }
         let bytes = [UInt8](data)
         func readUInt32(at offset: Int) -> UInt32 {
             (UInt32(bytes[offset]) << 24) | (UInt32(bytes[offset + 1]) << 16)
