@@ -80,7 +80,7 @@ Examples/
     batch-badges/            Tier 3 — one template + CSV -> N labels
 Apps/LabelGUI                Tier 3 — the GUI example
 
--> get-reminders             separate repo (renamed from asyncgetreminders)
+-> reminders                 new separate repo
 ```
 
 ### Snippets (Tier 1)
@@ -211,7 +211,7 @@ examples.
 | `example-label` | `Snippets/RenderATemplate.swift` + `Snippets/PreviewInITerm2.swift` + `Advanced/compare-renderers`; target deleted |
 | `ReminderList.swift` (layout) | `ListLayout` in LabelKit |
 | `ReminderList.swift` (CLI) | deleted |
-| `Reminders.swift` | `get-reminders` repo (renamed from `asyncgetreminders`) |
+| `Reminders.swift` | new `reminders` repo |
 | `example-listlabel` (uncommitted) | `Examples/labelprint/`, layout removed |
 | `PrinterOptions` x3 | x1, in `labelprint` |
 | LabelGUI forked `KeyValueContext` (164 lines) | reconciled with library's (45) |
@@ -237,7 +237,7 @@ of the suite.
 2. `ListLayout` into LabelKit, with tests
 3. `labelprint`; delete `example-listlabel`
 4. Snippets; delete `example-label`
-5. `get-reminders` extraction; delete `example-reminderlist`
+5. `reminders` extraction; delete `example-reminderlist`
 6. Tier 3 tools
 7. LabelGUI `KeyValueContext` reconciliation + DocC symbol fixes
 
@@ -245,13 +245,26 @@ Steps 1-2 unblock `t` #42.
 
 ## Companion work in other repos
 
-- **`get-reminders`** — rename `asyncgetreminders`, discard its contents (2022
-  Xcode project, deprecated `requestAccess(to:completion:)`, and an unawaited
-  authorization race), and port the newer `Reminders.swift` in as the
-  implementation. Output contract is plain lines sorted by priority; priority and
-  due date do not survive the pipe, which is the trade that keeps it composable.
-  A `--by-list` mode emitting `Groceries:` headers composes with `labelprint`'s
-  header convention with no shared code — only a shared text convention.
+- **`reminders`** — a **new** repo, seeded with `Reminders.swift` from
+  `Examples/ReminderList/`. The name is deliberately broader than
+  `get-reminders`, which would constrain the tool to reading at the outset;
+  `reminders` leaves room to add functionality later.
+
+  `asyncgetreminders` is **not** reused. It was a 2022 experiment in async +
+  EventKit rather than a usable tool, and its contents are strictly worse than
+  what already exists here: an Xcode project rather than a package, the
+  deprecated `requestAccess(to:completion:)`, and an `init()` that fires the
+  authorization request without awaiting it — so a fetch can run before access is
+  granted. It stays where it is, as the experiment it was.
+
+  Output contract is plain lines sorted by priority; priority and due date do not
+  survive the pipe, which is the trade that keeps it composable. A `--by-list`
+  mode emitting `Groceries:` headers composes with `labelprint`'s header
+  convention with no shared code — only a shared text convention.
+
+  **Naming note:** `keith/reminders-cli` (~900 stars) also installs a binary
+  called `reminders`. The repo name is unaffected, but the installed binary name
+  would collide if that tool is ever installed via Homebrew.
 - **`t` #41** — bump deployment target to macOS 14 (LabelKit requires it).
 - **`t` #42** — add label printing via LabelKit. Blocked by #41 and by step 2
   above.
