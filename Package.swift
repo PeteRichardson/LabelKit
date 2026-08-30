@@ -8,7 +8,8 @@ let package = Package(
         .library(name: "LabelKit", targets: ["LabelKit"]),
         .executable(name: "example-reminderlist", targets: ["ReminderList"]),
         .executable(name: "labelprint", targets: ["labelprint"]),
-        .executable(name: "compare-renderers", targets: ["CompareRenderers"])
+        .executable(name: "compare-renderers", targets: ["CompareRenderers"]),
+        .executable(name: "batch-badges", targets: ["BatchBadges"])
     ],
     dependencies: [
         .package(
@@ -59,6 +60,14 @@ let package = Package(
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             path: "Examples/Advanced/compare-renderers"
+        ),
+        .executableTarget(
+            name: "BatchBadges",
+            dependencies: [
+                "LabelKit",
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ],
+            path: "Examples/Advanced/batch-badges"
         )
     ]
 )
