@@ -144,12 +144,13 @@ visual for this project.
 
 ## Examples
 
-Two example executables ship with the package:
+Three example executables ship with the package:
 
 | Executable | Description |
 |------------|-------------|
 | `example-label` | Loads a Stencil template from the template store, prints the processed ZPL to stdout, and renders iTerm2 previews via both Labelary and zpl2png |
 | `example-reminderlist` | Prints your uncompleted Reminders.app items as a label on 4" continuous stock |
+| `example-listlabel` | Reads lines of text on stdin and prints them as one long list label; lines ending in `:` become section headers and blank lines become gaps |
 
 ```sh
 swift run example-label                   # ZPL to stdout + iTerm2 previews
@@ -161,18 +162,26 @@ swift run example-reminderlist zpl        # generated ZPL to stdout
 swift run example-reminderlist preview    # PNG preview inline in iTerm2
 swift run example-reminderlist print      # send to network printer
 swift run example-reminderlist print -d   # ...with debug logging to Console
+
+cat shopping.txt | swift run example-listlabel          # send to network printer
+cat shopping.txt | swift run example-listlabel preview  # PNG preview inline in iTerm2
+cat shopping.txt | swift run example-listlabel zpl      # generated ZPL to stdout
 ```
+
+`example-listlabel` defaults to its `print` subcommand, so a bare pipe goes
+straight to the printer.
 
 Every subcommand takes `-d`/`--debug` to enable OSLog output to Console.
 
 ### Choosing a printer
 
-Both examples default to a printer at `192.168.0.133:9100`. Override it with
+All three examples default to a printer at `192.168.0.133:9100`. Override it with
 `--host`/`--port` on any command that talks to a printer:
 
 ```sh
 swift run example-reminderlist print --host 10.0.1.42 --port 9100
 swift run example-label --print --host 10.0.1.42
+cat shopping.txt | swift run example-listlabel print --host 10.0.1.42
 ```
 
 or set the environment variables once:

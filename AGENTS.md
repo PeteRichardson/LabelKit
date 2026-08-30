@@ -15,6 +15,7 @@ swift test --filter ZPLLabelTests            # run one suite
 swift test --filter ZPLLabelTests/initialRenderWithContext   # run one test
 swift run example-label      # LabelCLI example
 swift run example-reminderlist zpl|preview|print|list        # ReminderList example
+cat list.txt | swift run example-listlabel print|preview|zpl # ListLabel example (stdin)
 ./Scripts/generate_docs.sh   # generate docs with jazzy
 ```
 
