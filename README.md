@@ -187,6 +187,7 @@ that combine several parts of LabelKit.
 |------------|-------------|
 | `batch-badges` | Renders one badge label per row of a CSV, from a single Stencil template |
 | `compare-renderers` | Renders ZPL from stdin through both Labelary and zpl2png, side by side |
+| **LabelGUI** | The Tier 3 GUI example — a SwiftUI app in `Apps/LabelGUI`, built via `Apps/LabelGUI/LabelGUI.xcodeproj` or `Workspace/LabelWorkspace.xcworkspace` in Xcode |
 
 ```sh
 swift run batch-badges                                  # template + CSV -> N labels
@@ -227,10 +228,6 @@ export LABELKIT_PRINTER_PORT=9100
 Precedence is flag → environment variable → built-in default. No source edit
 or rebuild required. `example-reminderlist` will prompt for Reminders access
 on first run.
-
-There is also a SwiftUI app, **LabelGUI**, in `Apps/LabelGUI` (open
-`Apps/LabelGUI/LabelGUI.xcodeproj` or `Workspace/LabelWorkspace.xcworkspace`
-in Xcode).
 
 ---
 

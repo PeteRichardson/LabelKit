@@ -69,7 +69,7 @@ Two criteria carry most of the weight:
 Snippets/                    Tier 1 — auto-discovered, no Package.swift entry
   PrintToStdout.swift
   PreviewInITerm2.swift
-  PrintToNetwork.swift
+  PrintAList.swift
   RenderATemplate.swift
   ChooseStockAndDevice.swift
 
