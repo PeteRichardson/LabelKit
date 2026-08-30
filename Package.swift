@@ -6,9 +6,9 @@ let package = Package(
     platforms: [.macOS(.v14)],
     products: [
         .library(name: "LabelKit", targets: ["LabelKit"]),
-        .executable(name: "example-label", targets: ["LabelCLI"]),
         .executable(name: "example-reminderlist", targets: ["ReminderList"]),
-        .executable(name: "labelprint", targets: ["labelprint"])
+        .executable(name: "labelprint", targets: ["labelprint"]),
+        .executable(name: "compare-renderers", targets: ["CompareRenderers"])
     ],
     dependencies: [
         .package(
@@ -31,14 +31,6 @@ let package = Package(
             ]),
         .testTarget(name: "LabelKitTests", dependencies: ["LabelKit"]),
         .executableTarget(
-            name: "LabelCLI",
-            dependencies: [
-                "LabelKit",
-                .product(name: "ArgumentParser", package: "swift-argument-parser")
-            ],
-            path: "Examples/LabelCLI"
-        ),
-        .executableTarget(
             name: "ReminderList",
             dependencies: [
                 "LabelKit",
@@ -59,6 +51,14 @@ let package = Package(
             name: "LabelPrintTests",
             dependencies: ["labelprint", "LabelKit"],
             path: "Tests/LabelPrintTests"
+        ),
+        .executableTarget(
+            name: "CompareRenderers",
+            dependencies: [
+                "LabelKit",
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ],
+            path: "Examples/Advanced/compare-renderers"
         )
     ]
 )
