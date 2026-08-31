@@ -32,7 +32,7 @@ The core flow is a pipeline: **source text → processors → renderable ZPL →
 - `ZPLProcessor` implementations (Sources/LabelKit/Processors/): `ResolveTemplates` (Stencil templating with a `KeyValueContext`), `InjectLength` (computes and injects `^LL` via `ZPLLengthEstimator`), `PrettyPrint`/`ZPLFormatter`. `StencilTemplateStore` loads named templates from `~/Library/Application Support/LabelKit/templates.json`.
 - `ZPLEnvironment`/`ZPLOptions` combine a `Stock` (physical media, measured in inches — presets like `label2x1`, `label4x`) and a `Device` (printer capabilities, native DPI — preset `ZD620`) into a `RenderGeometry` in dots. The Stock/Device distinction (media vs. printer) and the DPI-carrying `Payload` exist so mismatched-DPI output can be rejected at send time (`strict:` flag).
 - `Target` (Sources/LabelKit/Targets.swift) is the delivery side: `NetworkTarget` (raw TCP to printer port 9100), `StdoutTarget`, `ITerm2Target` (inline image escape codes), `FileTarget`. Targets receive a `Payload` (`.zpl` or `.png`, each tagged with its render DPI).
-- `ImageRenderer` (Sources/LabelKit/Previewers/) turns ZPL into PNG previews: `LabelaryRenderer` (Labelary web API) or `ZPL2PNGRenderer`, which shells out to the `zpl2png` binary bundled as a package resource in Sources/LabelKit/Helpers/.
+- `ImageRenderer` (Sources/LabelKit/Previewers/) turns ZPL into PNG previews: `LabelaryRenderer` (Labelary web API) or `ZPL2PNGRenderer`, which shells out to the `zpl2png` binary bundled as a package resource in Sources/LabelKit/Helpers/. `zpl2png` does not implement `^FB` — it renders only the first line of a block and drops the rest — so the list examples preview via `LabelaryRenderer`. Don't "fix" them back to `ZPL2PNGRenderer`.
 
 ## Notes
 

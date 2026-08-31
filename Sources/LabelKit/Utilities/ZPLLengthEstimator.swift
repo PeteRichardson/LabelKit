@@ -12,6 +12,9 @@ import Foundation
 /// Strategy: walk commands, track current field origin (x,y), current font height,
 /// and update `maxBottom` whenever we see something that occupies vertical space:
 /// - Text (^FD ... ^FS) -> lines * (fontHeight + lineGap)
+/// - Field block (^FB) -> as above, but the printer wraps the text to the block
+///   width and spaces the lines by the block's own parameter, so both are
+///   modelled here; see `wrappedLineCount` for how coarse the wrap estimate is
 /// - Barcode (^BC) -> barcodeHeight (if provided) else a default
 /// - Box/line (^GB) -> uses its height parameter
 /// Also captures ^LL (explicit length) and returns max(computed, LL).
@@ -75,9 +78,14 @@ public struct ZPLLengthEstimator: Sendable {
 
             case "A":  // ^A[f][o],[h],[w]  We mostly care about height
                 // Accept variants like ^ADN,30,30 or ^A0N,30,30 or ^A30,30
-                let parsedHeight = parseA(params: t.params)
-                if let h = parsedHeight {
+                let font = parseA(params: t.params)
+                if let h = font.height {
                     state.fontHeight = h
+                }
+                // A zero width asks the printer to scale from the height, so it
+                // carries no information about how wide a glyph is.
+                if let w = font.width, w > 0 {
+                    state.fontWidth = w
                 }
 
             case "CF":  // ^CFf,h,w  OR ^CF,h,w  OR ^CFf
@@ -87,6 +95,12 @@ public struct ZPLLengthEstimator: Sendable {
                     state.defaultFontHeight = h
                     state.fontHeight = h
                 }
+                if let w = cf.width, w > 0 {
+                    state.fontWidth = w
+                }
+
+            case "FB":  // ^FBw,maxLines,lineSpacing,justification,hangingIndent
+                state.pendingBlock = parseFB(t.params)
 
             case "BC":  // ^BCo,h,f,g,m (we care about h)
                 // Height is param #2 (after optional orientation)
@@ -110,11 +124,17 @@ public struct ZPLLengthEstimator: Sendable {
 
             case "FD":  // ^FD ... ^FS captured as a single token by tokenizer
                 // Count lines: \& starts a new line in ZPL, plus actual newlines if present.
-                let (lines, tallestLine) = measureFDText(
-                    t.params, fontHeight: state.fontHeight, lineGap: cfg.defaultLineGap)
+                // Inside a ^FB block the printer also wraps at the block width and
+                // spaces lines by ^FB's own parameter, so the block wins where set.
+                let block = state.pendingBlock
+                state.pendingBlock = nil
+                let lines = measureFDText(
+                    t.params, block: block,
+                    fontWidth: state.fontWidth ?? state.fontHeight)
+                let lineGap = block?.lineSpacing ?? cfg.defaultLineGap
                 let contentHeight =
                     (lines == 0
-                        ? 0 : (lines * tallestLine + (max(0, lines - 1) * cfg.defaultLineGap)))
+                        ? 0 : (lines * state.fontHeight + (max(0, lines - 1) * lineGap)))
                 let bottom = state.fieldY + contentHeight
                 state.maxBottom = max(state.maxBottom, bottom)
                 // print(
@@ -144,9 +164,16 @@ private struct ParserState {
 
     var defaultFontHeight: Int
     var fontHeight: Int  // “current” in effect
+    /// Character cell width, needed only to estimate wrapping inside a `^FB`.
+    /// `nil` until a `^A`/`^CF` declares one; callers fall back to the height.
+    var fontWidth: Int?
 
     var maxBottom: Int = 0
     var explicitLL: Int = 0
+
+    /// The `^FB` most recently seen. `^FB` applies to the single `^FD` that
+    /// follows it, so this is consumed and cleared there rather than persisting.
+    var pendingBlock: FieldBlock?
 
     init(config: ZPLLengthEstimator.Config) {
         self.defaultFontHeight = config.defaultFontHeight
@@ -286,25 +313,21 @@ private func parseInt(_ s: String) -> Int? {
 }
 
 /// Accepts variants of ^A like:
-///  - "DN,30,30"  => height 30
-///  - "0N,30,30"  => height 30
-///  - "30,20"     => height 30
-/// Returns height if found.
-private func parseA(params: String) -> Int? {
-    // Grab the first two comma-separated numbers (if any), treating the first numeric as height.
+///  - "DN,30,30"  => height 30, width 30
+///  - "0N,30,20"  => height 30, width 20
+///  - "30,20"     => height 30, width 20
+/// Returns whichever of the two it finds.
+private func parseA(params: String) -> (height: Int?, width: Int?) {
+    // Grab the first two comma-separated numbers (if any), treating the first numeric as height
+    // and the one after it as width.
     // We ignore rotation/orientation and font selection here.
     // Examples:
-    //   "DN,30,30"   -> height=30
-    //   "0N,30,30"   -> height=30
-    //   "30,20"      -> height=30
-    let parts = params.split(separator: ",", omittingEmptySubsequences: false)
-    // Search for the first numeric field
-    for p in parts {
-        if let n = Int(p.trimmingCharacters(in: .whitespaces)) {
-            return n
-        }
-    }
-    return nil
+    //   "DN,30,30"   -> height=30, width=30
+    //   "0N,30,20"   -> height=30, width=20
+    //   "30,20"      -> height=30, width=20
+    let numbers = params.split(separator: ",", omittingEmptySubsequences: false)
+        .compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
+    return (numbers.first, numbers.count >= 2 ? numbers[1] : nil)
 }
 
 /// ^BC parameters: o,h,f,g,m  (height is the second parameter if present)
@@ -373,13 +396,82 @@ private func parseGBHeight(_ params: String) -> Int? {
 
 /// Measure text payload for ^FD (already isolated until ^FS)
 /// We treat "\&" as newline, as well as literal newlines.
-/// Returns (lineCount, per-line-height)
-private func measureFDText(_ payload: String, fontHeight: Int, lineGap: Int) -> (Int, Int) {
+/// Inside a `^FB` the printer wraps at the block width too, so the explicit
+/// breaks are only a lower bound; `^FB`'s max-lines parameter is the upper one.
+/// Returns the line count.
+private func measureFDText(_ payload: String, block: FieldBlock?, fontWidth: Int) -> Int {
     // Split on \& (ZPL newline in ^FD) and also on actual '\n'
     let replaced = payload.replacingOccurrences(of: "\\&", with: "\n")
-    let lines = replaced.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
-    let count = max(1, lines.count)  // consider at least one line even if empty
-    return (count, fontHeight)
+    let segments = replaced.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
+
+    guard let block else {
+        return max(1, segments.count)  // consider at least one line even if empty
+    }
+
+    let wrapped = segments.reduce(0) {
+        $0 + wrappedLineCount(String($1), blockWidthDots: block.widthDots, fontWidth: fontWidth)
+    }
+    return min(max(1, wrapped), block.maxLines)
+}
+
+/// Fraction of its declared cell width an average glyph of the scalable font
+/// actually occupies.
+///
+/// Font 0 is proportional, so charging every character the full cell roughly
+/// halves the characters we think fit on a line — on a 4-inch label that
+/// over-counts a long item by several lines and feeds that much blank media.
+/// Measured against Labelary, 47 characters of ordinary text fill a 1040-dot
+/// block at a declared 50-dot cell, i.e. a ratio near 0.44. The value here is
+/// rounded up from that for headroom: text in wide glyphs still over-counts
+/// lines, which leaves the label long, and running long only wastes media
+/// whereas running short clips the bottom off the print.
+private let averageGlyphWidthRatio = 0.6
+
+/// Lines a single segment occupies once the printer wraps it to `blockWidthDots`.
+func wrappedLineCount(_ text: String, blockWidthDots: Int, fontWidth: Int) -> Int {
+    guard blockWidthDots > 0, fontWidth > 0 else { return 1 }
+    let glyphWidth = max(1, Int((Double(fontWidth) * averageGlyphWidthRatio).rounded()))
+    let perLine = max(1, blockWidthDots / glyphWidth)
+
+    // Greedy word wrap, matching how ^FB breaks at spaces and only splits a
+    // word that cannot fit on a line of its own.
+    var lines = 1
+    var used = 0
+    for word in text.split(separator: " ", omittingEmptySubsequences: true) {
+        let need = used == 0 ? word.count : word.count + 1  // +1 for the space
+        if used + need <= perLine {
+            used += need
+        } else {
+            if used > 0 { lines += 1 }  // an empty line is already available
+            used = word.count
+            // A word too wide for one line spills onto further lines.
+            let spill = (used - 1) / perLine
+            lines += spill
+            used -= spill * perLine
+        }
+    }
+    return lines
+}
+
+/// The parameters of a `^FB` that affect vertical extent.
+struct FieldBlock {
+    var widthDots: Int
+    var maxLines: Int
+    var lineSpacing: Int
+}
+
+/// `^FBw,maxLines,lineSpacing,justification,hangingIndent`.
+/// Every parameter is optional; ZPL's own defaults are 0, 1 and 0.
+private func parseFB(_ params: String) -> FieldBlock {
+    let parts = params.split(separator: ",", omittingEmptySubsequences: false).map {
+        Int($0.trimmingCharacters(in: .whitespaces))
+    }
+    func at(_ i: Int) -> Int? { i < parts.count ? parts[i] : nil }
+    return FieldBlock(
+        widthDots: at(0) ?? 0,
+        maxLines: max(1, at(1) ?? 1),
+        lineSpacing: at(2) ?? 0
+    )
 }
 
 

@@ -272,16 +272,27 @@ StencilTemplateStore actually reads/writes. -->
   construct your own `Device` for other printers.
 - **`LabelaryRenderer` needs internet** — it calls the
   [Labelary](https://labelary.com) web API. Use `ZPL2PNGRenderer` for offline
-  previews.
+  previews, except for list labels (see below).
+- **The bundled `zpl2png` does not implement `^FB`** — it renders only the first
+  line of a field block and silently drops the rest. `ListLayout` lays lists out
+  with `^FB`, so `labelprint preview` and `example-reminderlist preview` use
+  `LabelaryRenderer` and therefore need network access. Printing is unaffected;
+  the ZD620 renders `^FB` correctly. `compare-renderers` shows the divergence.
 - **`InjectLength` checks the device but not the stock, and its check ignores
   padding** — the estimate is validated against `Device.maxLengthDots`, but the
   value actually injected is the estimate plus 150 dots. A label landing within
   150 dots of the device maximum passes the check and still emits an over-long
   `^LL`. Stock height is not checked at all.
 - **Length estimation parses a subset of ZPL** — `ZPLLengthEstimator` accounts
-  for `^FD` text, `^BC` barcodes and `^GB` boxes. Other barcode types and
-  graphics contribute nothing to the estimate, so `^LL` can come out short for
-  labels that use them.
+  for `^FD` text, `^FB` field blocks, `^BC` barcodes and `^GB` boxes. Other
+  barcode types and graphics contribute nothing to the estimate, so `^LL` can
+  come out short for labels that use them.
+- **`^FB` wrapping is estimated, not measured** — the estimator has no font
+  metrics, so it charges each character an average fraction of the declared cell
+  width. The fraction is deliberately generous, so a wrapped block usually
+  reports a line or so more than the printer lays out: `^LL` runs slightly long
+  and feeds a little extra media rather than clipping the print. Text set in
+  unusually wide glyphs can still exceed the estimate.
 - **No print-job feedback** — `NetworkTarget` fires raw TCP at port 9100 and
   does not read printer status back. It surfaces connection failures and
   timeouts, but never a paper-out, head-open, or job-rejected condition.

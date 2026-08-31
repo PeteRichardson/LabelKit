@@ -33,11 +33,13 @@ struct GenerateLabelTests {
         #expect(zpl.components(separatedBy: "^XZ").count - 1 == 1)
     }
 
-    @Test func remindersAreLaidOutOneRowPerLine() throws {
+    @Test func remindersShareOneFieldBlockAtTheFirstRowOrigin() throws {
         let zpl = try generate_label(reminders: [reminder("first"), reminder("second")]).zpl()
-        // topMargin 20 + (fontSize 50 + gap 20) per row, indented to 80.
-        #expect(zpl.contains("^FO80,90^FH^FDfirst^FS"))
-        #expect(zpl.contains("^FO80,160^FH^FDsecond^FS"))
+        // topMargin 20 + fontSize 50 + gap 20 = 90, indented to 80. The second
+        // row's origin is the printer's job now, so ^FB carries the 20-dot gap
+        // and the rows are joined with \&.
+        #expect(zpl.contains("^FO80,90^FB1060,9999,20,L,0^FH^FDfirst\\&second^FS"))
+        #expect(zpl.contains("^LL478"))   // 90 + 70 for the second row + 318
     }
 
     @Test func labelLengthAndPublishedGeometryAgree() throws {
