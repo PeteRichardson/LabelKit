@@ -25,40 +25,21 @@ struct PrinterOptions: ParsableArguments {
     var port: UInt16 = ProcessInfo.processInfo.environment["LABELKIT_PRINTER_PORT"].flatMap(UInt16.init) ?? PrinterDefaults.port
 }
 
+/// Lays the reminders out as a single long list label.
+///
+/// The geometry and the ZPL itself come from ``ListLayout``, so this example
+/// inherits its UTF-8 declaration, one-shot `^CF` font and `^FH` escaping
+/// rather than hand-rolling a second, weaker copy of them. Reminder titles are
+/// arbitrary user text, so the escaping is what keeps a title containing `^XZ`
+/// from terminating the label.
 public func generate_label(reminders: [ReminderSummary]) -> ZPLLabel {
-    let fontSize = 50
-    let gap = 20
-    let lineHeight = fontSize + gap
+    // Reminders have no section headings; every row is a plain item.
+    // itemIndent 80 keeps the historical left margin for this example.
+    let layout = ListLayout(itemIndent: 80)
+    let environment = ZPLEnvironment(stock: Stock.Preset.label4x,
+                                     device: Device.Preset.ZD620)
 
-    let topMargin = 20          // space before first line
-    let bottomMargin = 318      // empirically needed for ZD620 + cutter @ 300 dpi
-
-    var y = topMargin
-
-    let todoItems = reminders
-        .map { reminder -> String in
-            y += lineHeight
-            return "^A0N,\(fontSize),\(fontSize)^FO80,\(y)^FD\(reminder.title)^FS"
-        }
-        .joined(separator: "\n")
-
-    // y now holds the baseline of the last line
-    let length = y + bottomMargin   // label length in dots
-
-    let header = "^PW1200^LH0,0^LS0"
-
-    let zpl = "^XA\(header)^LL\(length)\(todoItems)^XZ"
-
-    var zplenv = ZPLEnvironment(stock: Stock.Preset.label4x,
-                                device: Device.Preset.ZD620)
-    zplenv.options.geometry.heightDots = length
-
-    let label = ZPLLabel(
-        zpl,
-        processors: [],
-        environment: zplenv
-    )
-    return label
+    return layout.makeLabel(reminders.map { .item($0.title) }, environment: environment)
 }
 
 @main
