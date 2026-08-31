@@ -28,7 +28,7 @@ Core pieces include:
 
 - ``ImageRenderer``: A protocol for components that render ZPL into PNG
     - ``LabelaryRenderer``: Renders ZPL to a PNG using the Labelary web API. Each request uses ``ImageRenderOptions/timeout`` as its timeout interval; ``LabelaryRenderer/init(session:)`` supplies a custom `URLSession` for configuration-level policy (proxies, resource timeouts, test stubs).
-    - ``ZPL2PNGRenderer``: Renders ZPL to a PNG using ZPL2PNG helper tool embedded in LabelKit
+    - ``ZPL2PNGRenderer``: Renders ZPL to a PNG using ZPL2PNG helper tool embedded in LabelKit. It does not implement `^FB` field blocks, rendering only a block's first line, so labels built by ``ListLayout`` need ``LabelaryRenderer`` to preview accurately.
 
 Other Types:
 - ``ZPLRepresentable``: Protocol for types that can produce ZPL on demand.

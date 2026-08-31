@@ -13,10 +13,50 @@ struct ListLayoutTests {
         ZPLEnvironment(stock: Stock.Preset.label4x, device: Device.Preset.ZD620)
     }
 
+    // MARK: - ^FB field blocks
+
+    @Test func consecutiveItemsShareOneFieldBlock() throws {
+        let zpl = try ListLayout()
+            .makeLabel([.item("eggs"), .item("bananas"), .item("berries")],
+                       environment: environment).zpl()
+        // One origin for the run, and ^FB's third parameter carries the gap so
+        // the printer reproduces the 70-dot pitch itself.
+        #expect(zpl.contains("^FO100,90^FB1040,9999,20,L,0^FH^FDeggs\\&bananas\\&berries^FS"))
+        // The per-item origins this replaces are gone.
+        #expect(!zpl.contains("^FO100,160"))
+    }
+
+    @Test func headerEndsTheRunSoItemsAroundItAreSeparateBlocks() throws {
+        let zpl = try ListLayout()
+            .makeLabel([.item("a"), .header("H"), .item("b")], environment: environment).zpl()
+        #expect(zpl.contains("^FO100,90^FB1040,9999,20,L,0^FH^FDa^FS"))
+        #expect(zpl.contains("^A0N,60,60^FO60,170^FH^FDH^FS"))   // 90 + 60 + 20
+        #expect(zpl.contains("^FO100,240^FB1040,9999,20,L,0^FH^FDb^FS"))  // 170 + 50 + 20
+    }
+
+    @Test func shortEnoughItemsAreNotTreatedAsWrappingAtAll() throws {
+        // Font 0 is proportional: measured against Labelary, 47 characters fit
+        // the 1040-dot block at a declared 50-dot cell. Charging each character
+        // the full cell would call this 30-character item two lines and feed
+        // 70 dots of blank media for a line the printer never prints.
+        let zpl = try ListLayout()
+            .makeLabel([.item("aaaaaaaaaaaaaaa bbbbbbbbbbbbbb")], environment: environment).zpl()
+        #expect(zpl.contains("^LL408"))   // 90 + 318, one line
+    }
+
+    @Test func labelLengthCoversTheLinesAnItemWrapsOnto() throws {
+        // 41 characters do exceed the 1040-dot block, so this is two lines.
+        let zpl = try ListLayout()
+            .makeLabel([.item("aaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbbbbb")],
+                       environment: environment).zpl()
+        #expect(zpl.contains("^LL478"))   // 90 + 70 for the wrapped line + 318
+    }
+
+
     @Test func itemIsPlacedAtFirstBaselineUsingTheDefaultFont() throws {
         let zpl = try ListLayout().makeLabel([.item("eggs")], environment: environment).zpl()
         // topMargin 20 + itemFontSize 50 + gap 20 = 90
-        #expect(zpl.contains("^FO100,90^FH^FDeggs^FS"))
+        #expect(zpl.contains("^FO100,90^FB1040,9999,20,L,0^FH^FDeggs^FS"))
     }
 
     @Test func headerUsesHeaderFontAndSmallerIndent() throws {
@@ -28,9 +68,10 @@ struct ListLayoutTests {
     @Test func blankAdvancesHalfAnItemPitchAndEmitsNothing() throws {
         let zpl = try ListLayout()
             .makeLabel([.item("a"), .blank, .item("b")], environment: environment).zpl()
-        // a at 90; blank adds (50+20)/2 = 35 -> 125; b adds 70 -> 195
-        #expect(zpl.contains("^FO100,90^FH^FDa^FS"))
-        #expect(zpl.contains("^FO100,195^FH^FDb^FS"))
+        // a at 90; blank adds (50+20)/2 = 35 -> 125; b adds 70 -> 195.
+        // The blank also ends the run, so a and b are separate blocks.
+        #expect(zpl.contains("^FO100,90^FB1040,9999,20,L,0^FH^FDa^FS"))
+        #expect(zpl.contains("^FO100,195^FB1040,9999,20,L,0^FH^FDb^FS"))
     }
 
     // MARK: - Encoding and font declaration
@@ -111,7 +152,8 @@ struct ListLayoutTests {
         layout.itemIndent = 40
         let zpl = try layout.makeLabel([.item("small")], environment: environment).zpl()
         #expect(zpl.contains("^CF0,30,30"))
-        #expect(zpl.contains("^FO40,60^FH^FDsmall^FS"))          // 20 + 30 + 10
+        // Origin 20 + 30 + 10; block width 1200 - 40 indent - 60 right margin.
+        #expect(zpl.contains("^FO40,60^FB1100,9999,10,L,0^FH^FDsmall^FS"))
     }
 
     @Test func printWidthIsDerivedFromTheEnvironmentByDefault() throws {

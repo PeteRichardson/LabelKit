@@ -94,7 +94,10 @@ struct Preview: AsyncParsableCommand {
         }
         let label = generate_label(reminders: reminders)
         let target = ITerm2Target(device: label.environment.options.device)
-        try await label.preview(using: ZPL2PNGRenderer.self, to: target, timeout: 2.0, fallbackHeightDots: 500)
+        // Labelary, not the bundled zpl2png helper: list labels are laid out with
+        // ^FB, which zpl2png does not implement — it renders only the first line
+        // of a block and silently drops the rest. Labelary matches the ZD620.
+        try await label.preview(using: LabelaryRenderer.self, to: target, timeout: 2.0, fallbackHeightDots: 500)
         if debug {
             logger.info("Preview command completed successfully")
         }

@@ -103,7 +103,10 @@ struct Preview: AsyncParsableCommand {
 
         let label = ListLayout().makeLabel(lines, environment: makeEnvironment())
         let target = ITerm2Target(device: label.environment.options.device)
-        try await label.preview(using: ZPL2PNGRenderer.self, to: target,
+        // Labelary, not the bundled zpl2png helper: ListLayout emits ^FB blocks,
+        // which zpl2png does not implement — it renders only the first line of a
+        // block and silently drops the rest. Labelary matches the ZD620.
+        try await label.preview(using: LabelaryRenderer.self, to: target,
                                 timeout: 2.0, fallbackHeightDots: 500)
     }
 }
