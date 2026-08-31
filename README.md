@@ -266,8 +266,8 @@ StencilTemplateStore actually reads/writes. -->
 
 ## Known Limitations
 
-- **macOS only** (14+). Uses `Network.framework`, `Security`, and a bundled
-  macOS helper binary — no Linux support.
+- **macOS only** (14+). Uses `Security` and a bundled macOS helper binary —
+  no Linux support.
 - **One device preset** — only the ZD620 (300 dpi) ships as a preset;
   construct your own `Device` for other printers.
 - **`LabelaryRenderer` needs internet** — it calls the

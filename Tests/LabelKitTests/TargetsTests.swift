@@ -5,7 +5,57 @@
 
 import Testing
 import Foundation
+@preconcurrency import Network
 @testable import LabelKit
+
+/// Collects everything a loopback peer receives, plus whether it saw end-of-stream.
+private final class Recorder: @unchecked Sendable {
+    private let lock = NSLock()
+    private var bytes = Data()
+    private var complete = false
+
+    func append(_ data: Data) { lock.lock(); bytes.append(data); lock.unlock() }
+    func markComplete() { lock.lock(); complete = true; lock.unlock() }
+    var received: Data { lock.lock(); defer { lock.unlock() }; return bytes }
+    var sawEndOfStream: Bool { lock.lock(); defer { lock.unlock() }; return complete }
+}
+
+private func drain(_ conn: NWConnection, into recorder: Recorder) {
+    conn.receive(minimumIncompleteLength: 1, maximumLength: 64 * 1024) { data, _, isComplete, error in
+        if let data, !data.isEmpty { recorder.append(data) }
+        if isComplete || error != nil {
+            recorder.markComplete()
+            conn.cancel()
+        } else {
+            drain(conn, into: recorder)
+        }
+    }
+}
+
+/// Starts a loopback listener that records one connection's bytes, returning its port.
+private func startRecordingListener(_ recorder: Recorder) async throws -> (NWListener, UInt16) {
+    let listener = try NWListener(using: .tcp, on: .any)
+    listener.newConnectionHandler = { conn in
+        conn.start(queue: .global())
+        drain(conn, into: recorder)
+    }
+    let port: UInt16 = try await withCheckedThrowingContinuation { cont in
+        listener.stateUpdateHandler = { state in
+            switch state {
+            case .ready:
+                listener.stateUpdateHandler = nil
+                cont.resume(returning: listener.port?.rawValue ?? 0)
+            case .failed(let error):
+                listener.stateUpdateHandler = nil
+                cont.resume(throwing: error)
+            default:
+                break
+            }
+        }
+        listener.start(queue: .global())
+    }
+    return (listener, port)
+}
 
 @Suite("Target strict DPI guard")
 struct NetworkTargetDPIGuardTests {
@@ -48,6 +98,39 @@ struct NetworkTargetDPIGuardTests {
         let elapsed = Date().timeIntervalSince(start)
 
         #expect(elapsed < 10)
+    }
+}
+
+@Suite("NetworkTarget delivery")
+struct NetworkTargetDeliveryTests {
+    let device = Device.Preset.ZD620
+
+    // `sendRaw` used to run on NWConnection and resume as soon as `.contentProcessed`
+    // fired — which means only that the connection took the bytes out of our buffer, not
+    // that they reached the wire. Neither that nor the `.cancelled` state following
+    // `cancel()` is a delivery signal, so a CLI exited with bytes still queued inside
+    // Network.framework and print jobs silently vanished. Loopback hid it completely
+    // (data lands inline), which is why this can only be pinned down as a contract:
+    // by the time `sendRaw` returns, the peer must have the whole payload *and* have
+    // seen the half-close, i.e. the bytes are the kernel's problem now, not ours.
+    @Test func sendRawDeliversCompletePayloadAndHalfClosesStream() async throws {
+        let recorder = Recorder()
+        let (listener, port) = try await startRecordingListener(recorder)
+        defer { listener.cancel() }
+
+        let payload = Data("^XA^CI28^PW1200^LL978^FO60,100^FDReminders:^FS^XZ".utf8)
+        let target = NetworkTarget(device: device, host: "127.0.0.1", port: port)
+        try await target.sendRaw(payload, timeout: 5)
+
+        // The peer's receive callback runs on its own queue, so allow it to observe the
+        // FIN we sent; the payload itself is guaranteed delivered once sendRaw returns.
+        let deadline = Date().addingTimeInterval(2)
+        while !recorder.sawEndOfStream && Date() < deadline {
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
+
+        #expect(recorder.received == payload)
+        #expect(recorder.sawEndOfStream)
     }
 }
 
