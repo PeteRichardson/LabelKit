@@ -40,6 +40,11 @@ let package = Package(
             path: "Examples/ReminderList",
             sources: ["ReminderList.swift", "Reminders.swift"]
         ),
+        .testTarget(
+            name: "ReminderListTests",
+            dependencies: ["ReminderList", "LabelKit"],
+            path: "Tests/ReminderListTests"
+        ),
         .executableTarget(
             name: "labelprint",
             dependencies: [

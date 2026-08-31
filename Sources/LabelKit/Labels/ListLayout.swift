@@ -69,12 +69,14 @@ public struct ListLayout: Sendable {
             switch line {
             case .header(let text):
                 y += headerFontSize + gap
+                // Headers are the only rows that deviate from the ^CF default,
+                // so they alone carry a font command. ^A applies to its own
+                // field only; the next item falls back to ^CF.
                 rows.append("^A0N,\(headerFontSize),\(headerFontSize)"
-                            + "^FO\(headerIndent),\(y)^FD\(Self.sanitized(text))^FS")
+                            + "^FO\(headerIndent),\(y)^FH^FD\(Self.escaped(text))^FS")
             case .item(let text):
                 y += itemFontSize + gap
-                rows.append("^A0N,\(itemFontSize),\(itemFontSize)"
-                            + "^FO\(itemIndent),\(y)^FD\(Self.sanitized(text))^FS")
+                rows.append("^FO\(itemIndent),\(y)^FH^FD\(Self.escaped(text))^FS")
             case .blank:
                 y += (itemFontSize + gap) / 2
             }
@@ -87,18 +89,39 @@ public struct ListLayout: Sendable {
 
         // ^LH/^LS persist in printer configuration between jobs, so zero them
         // explicitly rather than inheriting whatever the last job left behind.
-        let zpl = "^XA^PW\(width)^LH0,0^LS0^LL\(length)\(body)^XZ"
+        // ^CI28 selects UTF-8; without it any non-ASCII input prints as garbage.
+        // ^CF sets the item font once, so ordinary rows need no ^A of their own.
+        let zpl = "^XA^CI28^PW\(width)^LH0,0^LS0"
+            + "^CF0,\(itemFontSize),\(itemFontSize)^LL\(length)\(body)^XZ"
 
         var environment = environment
         environment.options.geometry.heightDots = length
         return ZPLLabel(zpl, processors: [], environment: environment)
     }
 
-    /// Removes the two characters ZPL treats as command introducers.
+    /// Hex-escapes the characters that a `^FH` field cannot carry literally.
     ///
     /// List text is arbitrary user input, so a stray `^` or `~` would otherwise
-    /// be parsed as the start of a command rather than printed.
-    private static func sanitized(_ text: String) -> String {
-        text.filter { $0 != "^" && $0 != "~" }
+    /// be parsed as the start of a command rather than printed. Emitting them
+    /// as `_5E`/`_7E` under `^FH` prints the real character instead of dropping
+    /// it, so the user's text survives intact.
+    ///
+    /// `_` is the `^FH` escape introducer itself and so must escape to `_5F`;
+    /// left alone it would silently swallow the next two characters.
+    ///
+    /// Escaping is per-`Character`, so multi-byte UTF-8 passes through
+    /// untouched for the `^CI28` printer to decode.
+    private static func escaped(_ text: String) -> String {
+        var out = ""
+        out.reserveCapacity(text.count)
+        for character in text {
+            switch character {
+            case "^": out += "_5E"
+            case "~": out += "_7E"
+            case "_": out += "_5F"
+            default:  out.append(character)
+            }
+        }
+        return out
     }
 }
